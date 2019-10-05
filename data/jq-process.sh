@@ -1,0 +1,1 @@
+ cat beers.json | jq '.[] | select(.labels != null) | select(.labels.contentAwareLarge != null) | { abv, category: .style.category.name, description, id, label: .labels.contentAwareLarge, name, organic: .isOrganic, style: .style.name, styleId}'

@@ -1,0 +1,36 @@
+= Retail Demo
+:idprefix:
+:idseparator: -
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+:toc: preamble
+endif::[]
+ifndef::env-github[:icons: font]
+// URIs
+:project-repo: Redislabs-Solution-Architects/retail-demo
+:uri-repo: https://github.com/{project-repo}
+// GitHub customization
+ifdef::env-github[]
+:badges:
+:tag: master
+:!toc-title:
+:tip-caption: :bulb:
+:note-caption: :paperclip:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+== Data Load
+
+.Stores
+[source,shell]
+====
+$ cd data
+$ ./load.sh
+====
+
+.Inventory updates
+[source,shell]
+====
+$ riot gen --batch 1 --max 10000000 --sleep 1 --faker-fields "sku=number.numberBetween(1,538)" "store=number.numberBetween(1,2615)" "quantity=number.numberBetween(-10,10)" --command xadd --keyspace inventory-updates
+====
