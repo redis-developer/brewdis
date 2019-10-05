@@ -15,7 +15,6 @@ import lombok.Data;
 public class RetailConfig {
 
 	private int searchResultsLimit = 20;
-	private StompConfig stomp = new StompConfig();
 	private String productIndex = "products";
 	private String productKeyspace = "product";
 	private String storeIndex = "stores";
@@ -24,6 +23,7 @@ public class RetailConfig {
 	private String inventoryIndex = "inventory";
 	private String inventoryKeyspace = "inventory";
 	private String keySeparator = ":";
+	private StompConfig stomp = new StompConfig();
 
 	@Data
 	public static class StompConfig implements Serializable {
@@ -33,6 +33,7 @@ public class RetailConfig {
 		private int port = 8080;
 		private String endpoint = "/websocket";
 		private String destinationPrefix = "/topic";
+		private String inventoryTopic = destinationPrefix + "/inventory";
 	}
 
 }

@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 
 @Data
@@ -35,6 +36,8 @@ public class Inventory {
 	private String productDescription;
 	private String productName;
 	private String productStyle;
+	@Default
+	private String quantity = "0";
 	private String rollupInventory;
 	private String state;
 	private String storeDescription;

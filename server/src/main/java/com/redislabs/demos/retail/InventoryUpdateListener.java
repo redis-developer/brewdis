@@ -2,8 +2,6 @@ package com.redislabs.demos.retail;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.data.redis.stream.Subscription;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +42,8 @@ public class InventoryUpdateListener
 	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
+	@Autowired
+	private SimpMessageSendingOperations sendingOps;
 	private ObjectMapper mapper = new ObjectMapper();
 	private AddOptions addOptions = AddOptions.builder().replace(true).replacePartial(true).build();
 
@@ -77,23 +78,36 @@ public class InventoryUpdateListener
 			return;
 		}
 		Store store = mapper.convertValue(storeDoc, Store.class);
-		Inventory inventory = Inventory.builder().abv(product.getAbv()).address(store.getAddress())
-				.address2(store.getAddress2()).address3(store.getAddress3()).availableToSell(store.getAvailableToSell())
-				.city(store.getCity()).country(store.getCountry()).isDefaultStore(store.getIsDefault())
-				.isPreferredStore(store.getIsPreferred()).latitude(store.getLatitude()).location(store.getLocation())
-				.longitude(store.getLongitude()).market(store.getMarket()).organic(product.getOrganic())
-				.parentDc(store.getParentDc()).productCategory(product.getCategory())
-				.productDescription(product.getDescription()).productName(product.getName())
-				.productStyle(product.getStyle()).rollupInventory(store.getRollupInventory()).sku(product.getSku())
-				.state(store.getState()).store(store.getId()).storeDescription(store.getDescription())
-				.storeType(store.getType()).zip(store.getZip()).build();
-		String docId = utils.key(config.getInventoryKeyspace(), inventory.getStore(), inventory.getSku());
+		String docId = utils.key(config.getInventoryKeyspace(), store.getId(), product.getSku());
+		Map<String, String> doc = commands.get(config.getInventoryIndex(), docId);
+		Inventory inventory;
+		if (doc == null) {
+			inventory = Inventory.builder().abv(product.getAbv()).address(store.getAddress())
+					.address2(store.getAddress2()).address3(store.getAddress3())
+					.availableToSell(store.getAvailableToSell()).city(store.getCity()).country(store.getCountry())
+					.isDefaultStore(store.getIsDefault()).isPreferredStore(store.getIsPreferred())
+					.latitude(store.getLatitude()).location(store.getLocation()).longitude(store.getLongitude())
+					.market(store.getMarket()).organic(product.getOrganic()).parentDc(store.getParentDc())
+					.productCategory(product.getCategory()).productDescription(product.getDescription())
+					.productName(product.getName()).productStyle(product.getStyle())
+					.rollupInventory(store.getRollupInventory()).sku(product.getSku()).state(store.getState())
+					.store(store.getId()).storeDescription(store.getDescription()).storeType(store.getType())
+					.zip(store.getZip()).build();
+		} else {
+			inventory = mapper.convertValue(doc, Inventory.class);
+		}
+		if (inventory.getQuantity() == null) {
+			inventory.setQuantity("0");
+		}
+		inventory
+				.setQuantity(String.valueOf(Integer.parseInt(inventory.getQuantity()) + inventoryUpdate.getQuantity()));
 		Map<String, String> fields = mapper.convertValue(inventory, Map.class);
 		try {
 			commands.add(config.getInventoryIndex(), docId, 1.0, fields, addOptions);
 		} catch (RedisCommandExecutionException e) {
 			log.error("Could not add document {}: {}", docId, fields, e);
 		}
+		sendingOps.convertAndSend(config.getStomp().getInventoryTopic(), inventory);
 	}
 
 }
