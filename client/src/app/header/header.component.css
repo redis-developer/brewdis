@@ -1,0 +1,21 @@
+.toolbar-spacer {
+	flex: 1 1 auto;
+}
+
+.toolbar a {
+	height: 60%;
+	padding-left: 10px;
+}
+
+.toolbar-redisearch {
+	height: 100%;
+}
+
+.toolbar-link {
+	padding-right: 20px;
+}
+
+.toolbar-redislabs {
+	height: 60%;
+	padding-left: 10px;
+}

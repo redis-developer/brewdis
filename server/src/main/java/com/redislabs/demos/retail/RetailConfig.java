@@ -14,7 +14,7 @@ import lombok.Data;
 @Data
 public class RetailConfig {
 
-	private int searchResultsLimit = 20;
+	private int searchResultsLimit = 300;
 	private String productIndex = "products";
 	private String productKeyspace = "product";
 	private String storeIndex = "stores";
@@ -22,6 +22,9 @@ public class RetailConfig {
 	private String inventoryUpdatesStream = "inventory-updates";
 	private String inventoryIndex = "inventory";
 	private String inventoryKeyspace = "inventory";
+	private String styleSuggestionIndex = "styles";
+	private String categoriesKey = "categories";
+	private boolean fuzzySuggest;
 	private String keySeparator = ":";
 	private StompConfig stomp = new StompConfig();
 

@@ -1,0 +1,38 @@
+<form #searchForm="ngForm" (ngSubmit)="search()" class="search-form">
+    <mat-form-field>
+		<mat-label>Category</mat-label>
+		<mat-select [(value)]="selectedCategory">
+			<mat-option *ngFor="let category of categories" [value]="category">
+				{{category}}
+			</mat-option>
+		</mat-select>
+    </mat-form-field>
+	<mat-form-field class="style-field" hintLabel="Type a few characters">
+		<input matInput placeholder="Style" [matAutocomplete]="auto" [formControl]="styleField">
+	</mat-form-field>
+	<mat-autocomplete class="style-field" #auto="matAutocomplete">
+		<mat-option *ngFor="let style of styles" [value]="style">
+			<span>{{ style }}</span>
+		</mat-option>
+	</mat-autocomplete>
+	<mat-form-field class="search-field" hintLabel="RediSearch query, e.g. '@genres:{Funk} @year:[1968 1983]'"> <input matInput
+		placeholder="Query" [formControl]="searchField"> </mat-form-field>
+	<button mat-raised-button color="primary" type="submit">Submit</button>
+</form>
+<br>
+
+<div class="search-results" fxLayout="row wrap" fxLayout.xs="column"
+	fxLayoutGap="1%" fxLayoutAlign="left">
+	<div class="product-card" *ngFor="let product of results | async">
+		<img src="{{product.label}}" alt="{{product.name}}">
+		<button mat-mini-fab color="primary" class="like-button-overlay mat-fab mat-primary" (click)="like(product)">
+       		<mat-icon aria-label="Favorite">thumb_up_alt</mat-icon>
+       	</button>
+		<div class="card-content">
+			<div class="row">
+				<h5>{{product.name}}</h5>
+			</div>
+			<div class="row product-details">{{product.style}}&nbsp;<i>{{product.abv}}%</i></div>
+		</div>
+	</div>
+</div>

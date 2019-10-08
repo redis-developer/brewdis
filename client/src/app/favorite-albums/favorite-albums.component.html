@@ -1,0 +1,13 @@
+<div class="like-list">
+	<mat-list>
+		<mat-list-item *ngFor="let like of likes">
+	        <img mat-list-avatar src="/api/image/album/{{like.album.id}}" alt="{{like.album.title}}">
+	        <p mat-line>
+	          <span>{{like.album.artist}} -- </span>
+	          <span class="demo-secondary-text">{{like.album.title}}</span>
+	        </p>
+	        <h4 mat-line class="like-user">liked by {{like.user?like.user.name:'Anonymous Coward'}} at {{like.time | date:'h:mm a'}} on {{like.time | date:'MM/dd/yyyy'}}</h4>
+	        <mat-divider inset *ngIf="!last"></mat-divider>
+		</mat-list-item>
+	</mat-list>
+</div>

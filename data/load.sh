@@ -19,15 +19,19 @@ redis-cli FT.CREATE stores SCHEMA \
 	type TAG SORTABLE \
 	zip TAG SORTABLE
 riot file-import --file stores.json --proc "id=#context.index+1" --index stores --keyspace store --keys id
+
 redis-cli FT.CREATE products SCHEMA \
 	sku TAG SORTABLE \
 	abv NUMERIC SORTABLE \
-	category TAG SORTABLE \
+	style.category.name TAG SORTABLE \
 	description TEXT \
 	name TEXT SORTABLE \
-	organic TAG SORTABLE \
-	style TAG SORTABLE
+	isOrganic TAG SORTABLE \
+	style.name TAG SORTABLE
 riot file-import --file products.json --proc "sku=#context.index+1" --index products --keyspace product --keys sku
+riot file-import --file products.json --index styles --ft-command sugadd --suggest style.name --suggest-increment
+riot file-import --file products.json --keyspace categories --command sadd --members style.category.name
+
 redis-cli FT.CREATE inventory SCHEMA \
 	store TAG SORTABLE \
 	sku TAG SORTABLE \
@@ -55,3 +59,4 @@ redis-cli FT.CREATE inventory SCHEMA \
 	storeDescription TEXT \
 	storeType TAG SORTABLE \
 	zip TAG SORTABLE
+
