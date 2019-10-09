@@ -3,21 +3,21 @@ import { StompService, StompConfig } from '@stomp/ng2-stompjs';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
-  selector: 'app-favorite-albums',
-  templateUrl: './favorite-albums.component.html',
-  styleUrls: ['./favorite-albums.component.css']
+  selector: 'app-inventory',
+  templateUrl: './inventory.component.html',
+  styleUrls: ['./inventory.component.css']
 })
-export class FavoriteAlbumsComponent implements OnInit {
+export class InventoryComponent implements OnInit {
 
   API_URL = '/api/';
 
   private stompService: StompService;
-  private likes = [];
+  private inventory = [];
 
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
-    this.http.get(this.API_URL + 'likes').subscribe((likes: any) => this.likes = likes);
+    this.http.get(this.API_URL + 'inventory').subscribe((inventory: any) => this.inventory = inventory);
     this.http.get(this.API_URL + 'config/stomp').subscribe((stomp: any) => this.connectStompService(stomp));
   }
 
@@ -35,7 +35,7 @@ export class FavoriteAlbumsComponent implements OnInit {
       debug: true
     };
     this.stompService = new StompService(stompConfig);
-    this.stompService.subscribe(config.likesTopic).subscribe(like => this.likes.unshift(JSON.parse(like.body)));
+    this.stompService.subscribe(config.inventoryTopic).subscribe(update => this.inventory=JSON.parse(update.body));
   }
 
 }

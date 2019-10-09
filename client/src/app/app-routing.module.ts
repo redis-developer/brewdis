@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { ProductSearchComponent } from './product-search/product-search.component';
-import { FavoriteAlbumsComponent } from './favorite-albums/favorite-albums.component';
+import { InventoryComponent } from './inventory/inventory.component';
 
 const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'search'},
   {path: 'search' , component: ProductSearchComponent},
-  {path: 'likes', component: FavoriteAlbumsComponent}
+  {path: 'inventory', component: InventoryComponent}
 ];
 
 @NgModule({

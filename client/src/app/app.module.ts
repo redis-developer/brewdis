@@ -9,26 +9,16 @@ import { ProductSearchComponent } from './product-search/product-search.componen
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
-import {
-  MatButtonModule,
-  MatIconModule,
-  MatCardModule,
-  MatInputModule,
-  MatAutocompleteModule,
-  MatListModule,
-  MatGridListModule,
-  MatToolbarModule,
-  MatSelectModule
-} from '@angular/material';
+import { MatButtonModule, MatIconModule, MatCardModule, MatInputModule, MatAutocompleteModule, MatListModule, MatGridListModule, MatToolbarModule, MatSelectModule } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FavoriteAlbumsComponent } from './favorite-albums/favorite-albums.component';
+import { InventoryComponent } from './inventory/inventory.component';
 import { HeaderComponent } from './header/header.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     ProductSearchComponent,
-    FavoriteAlbumsComponent,
+    InventoryComponent,
     HeaderComponent
   ],
   imports: [
