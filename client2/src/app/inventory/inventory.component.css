@@ -1,0 +1,13 @@
+.product-image {
+	height: 150px;
+}
+
+.product-image img {
+	width: 80px;
+	height: 80px;
+}
+
+.inventory {
+  display: flex;
+  flex-flow: row wrap;
+}
