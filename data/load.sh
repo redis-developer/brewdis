@@ -1,5 +1,5 @@
 redis-cli FT.CREATE stores SCHEMA \
-	id TAG SORTABLE \
+	store TAG SORTABLE \
 	address TEXT \
 	address2 TEXT \
 	address3 TEXT \
@@ -18,7 +18,7 @@ redis-cli FT.CREATE stores SCHEMA \
 	state TAG SORTABLE \
 	type TAG SORTABLE \
 	zip TAG SORTABLE
-riot file-import --file stores.json --proc "id=#context.index+1" --index stores --keyspace store --keys id
+riot file-import --file stores.json --proc "store=#context.index+1" --index stores --keyspace store --keys store
 
 redis-cli FT.CREATE products SCHEMA \
 	sku TAG SORTABLE \
@@ -60,3 +60,4 @@ redis-cli FT.CREATE inventory SCHEMA \
 	storeType TAG SORTABLE \
 	zip TAG SORTABLE
 
+riot gen --batch 1 --max 10000000 --sleep 1000 --faker-fields "sku=number.numberBetween(1,1109)" "store=number.numberBetween(1,2615)" "quantity=number.numberBetween(-10,10)" --command xadd --keyspace inventory-updates

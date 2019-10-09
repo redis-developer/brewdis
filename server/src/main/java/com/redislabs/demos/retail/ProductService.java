@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.Limit;
 import com.redislabs.lettusearch.search.SearchOptions;
@@ -23,7 +22,10 @@ public class ProductService {
 	private RetailConfig config;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
-	private ObjectMapper mapper = new ObjectMapper();
+
+	public List<SearchResult<String, String>> inventory() {
+		return connection.sync().search(config.getInventoryIndex(), "*");
+	}
 
 	public Stream<SearchResult<String, String>> search(String category, String style, String keywords) {
 		String query = "";
@@ -36,7 +38,7 @@ public class ProductService {
 		if (keywords != null && keywords.length() > 0) {
 			query += " " + keywords;
 		}
-		if (query.length()==0) {
+		if (query.length() == 0) {
 			query = "*";
 		}
 		SearchResults<String, String> results = connection.sync().search(config.getProductIndex(), query,

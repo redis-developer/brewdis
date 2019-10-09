@@ -1,7 +1,10 @@
 package com.redislabs.demos.retail;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.PreDestroy;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,15 +14,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.data.redis.stream.Subscription;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.redislabs.demos.retail.model.Inventory;
-import com.redislabs.demos.retail.model.InventoryUpdate;
-import com.redislabs.demos.retail.model.Product;
-import com.redislabs.demos.retail.model.Store;
+import com.redislabs.demos.retail.model.Field;
 import com.redislabs.lettusearch.RediSearchCommands;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.AddOptions;
@@ -29,11 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class InventoryUpdateListener
-		implements StreamListener<String, MapRecord<String, String, String>>, InitializingBean {
+public class InventoryListener implements StreamListener<String, MapRecord<String, String, String>>, InitializingBean {
 
-	@Autowired
-	private InventoryUpdateListener inventoryUpdateListener;
 	@Autowired
 	private RetailConfig config;
 	@Autowired
@@ -42,10 +37,9 @@ public class InventoryUpdateListener
 	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
-	@Autowired
-	private SimpMessageSendingOperations sendingOps;
-	private ObjectMapper mapper = new ObjectMapper();
+
 	private AddOptions addOptions = AddOptions.builder().replace(true).replacePartial(true).build();
+	private Subscription subscription;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -54,60 +48,52 @@ public class InventoryUpdateListener
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
 				.create(redisTemplate.getConnectionFactory(), containerOptions);
 		container.start();
-		Subscription subscription = container.receive(StreamOffset.latest(config.getInventoryUpdatesStream()),
-				inventoryUpdateListener);
+		subscription = container.receive(StreamOffset.latest(config.getInventoryUpdatesStream()), this);
 		subscription.await(Duration.ofSeconds(2));
 	}
 
-	@SuppressWarnings("unchecked")
+	@PreDestroy
+	public void teardown() {
+		subscription.cancel();
+	}
+
 	@Override
 	public void onMessage(MapRecord<String, String, String> message) {
-		InventoryUpdate inventoryUpdate = mapper.convertValue(message.getValue(), InventoryUpdate.class);
+		Map<String, String> inventoryUpdate = message.getValue();
+		String store = inventoryUpdate.get(Field.store.name());
+		String sku = inventoryUpdate.get(Field.sku.name());
 		RediSearchCommands<String, String> commands = connection.sync();
-		String productDocId = utils.key(config.getProductKeyspace(), inventoryUpdate.getSku());
+		String productDocId = utils.key(config.getProductKeyspace(), sku);
 		Map<String, String> productDoc = commands.get(config.getProductIndex(), productDocId);
 		if (productDoc == null) {
 			log.warn("Unknown product {}", productDocId);
 			return;
 		}
-		Product product = mapper.convertValue(productDoc, Product.class);
-		String storeDocId = utils.key(config.getStoreKeyspace(), inventoryUpdate.getStore());
+		String storeDocId = utils.key(config.getStoreKeyspace(), store);
 		Map<String, String> storeDoc = commands.get(config.getStoreIndex(), storeDocId);
 		if (storeDoc == null) {
 			log.warn("Unknown store {}", storeDocId);
 			return;
 		}
-		Store store = mapper.convertValue(storeDoc, Store.class);
-		String docId = utils.key(config.getInventoryKeyspace(), store.getId(), product.getSku());
-		Map<String, String> doc = commands.get(config.getInventoryIndex(), docId);
-		Inventory inventory;
-		if (doc == null) {
-			inventory = Inventory.builder().abv(product.getAbv()).address(store.getAddress())
-					.address2(store.getAddress2()).address3(store.getAddress3())
-					.availableToSell(store.getAvailableToSell()).city(store.getCity()).country(store.getCountry())
-					.isDefaultStore(store.getIsDefault()).isPreferredStore(store.getIsPreferred())
-					.latitude(store.getLatitude()).location(store.getLocation()).longitude(store.getLongitude())
-					.market(store.getMarket()).organic(product.getOrganic()).parentDc(store.getParentDc())
-					.productCategory(product.getCategory()).productDescription(product.getDescription())
-					.productName(product.getName()).productStyle(product.getStyle())
-					.rollupInventory(store.getRollupInventory()).sku(product.getSku()).state(store.getState())
-					.store(store.getId()).storeDescription(store.getDescription()).storeType(store.getType())
-					.zip(store.getZip()).build();
-		} else {
-			inventory = mapper.convertValue(doc, Inventory.class);
+		String docId = utils.key(config.getInventoryKeyspace(), store, sku);
+		Map<String, String> inventory = commands.get(config.getInventoryIndex(), docId);
+		if (inventory == null) {
+			inventory = new HashMap<>();
+			inventory.putAll(productDoc);
+			inventory.putAll(storeDoc);
+			inventory.put(Field.quantity.name(), "100");
 		}
-		if (inventory.getQuantity() == null) {
-			inventory.setQuantity("0");
-		}
-		inventory
-				.setQuantity(String.valueOf(Integer.parseInt(inventory.getQuantity()) + inventoryUpdate.getQuantity()));
-		Map<String, String> fields = mapper.convertValue(inventory, Map.class);
+		int quantity = Integer.parseInt(inventory.get(Field.quantity.name()));
+		int updateQuantity = Integer.parseInt(inventoryUpdate.get(Field.quantity.name()));
+		inventory.put(Field.delta.name(), String.valueOf(updateQuantity));
+		inventory.put(Field.quantity.name(), String.valueOf(Math.max(quantity + updateQuantity, 0)));
 		try {
-			commands.add(config.getInventoryIndex(), docId, 1.0, fields, addOptions);
+			commands.add(config.getInventoryIndex(), docId, 1.0, inventory, addOptions);
 		} catch (RedisCommandExecutionException e) {
-			log.error("Could not add document {}: {}", docId, fields, e);
+			log.error("Could not add document {}: {}", docId, inventory, e);
 		}
-		sendingOps.convertAndSend(config.getStomp().getInventoryTopic(), inventory);
+		String streamKey = utils.key(config.getInventoryUpdatesStream(), store, sku);
+		commands.xadd(streamKey, inventory);
 	}
 
 }

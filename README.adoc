@@ -37,5 +37,5 @@ $ ./load.sh
 === Inventory updates
 [source,shell]
 ====
-$ riot gen --batch 1 --max 10000000 --sleep 1 --faker-fields "sku=number.numberBetween(1,538)" "store=number.numberBetween(1,2615)" "quantity=number.numberBetween(-10,10)" --command xadd --keyspace inventory-updates
+$ riot gen --batch 1 --max 10000000 --sleep 1 --faker-fields "sku=number.numberBetween(1,1109)" "store=number.numberBetween(1,2615)" "quantity=number.numberBetween(-10,10)" --command xadd --keyspace inventory-updates
 ====
