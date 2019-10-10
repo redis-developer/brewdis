@@ -14,16 +14,17 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.data.redis.stream.Subscription;
 import org.springframework.stereotype.Component;
 
-import com.redislabs.demos.retail.model.Field;
 import com.redislabs.lettusearch.RediSearchCommands;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.AddOptions;
 
 import io.lettuce.core.RedisCommandExecutionException;
 import lombok.extern.slf4j.Slf4j;
+import static com.redislabs.demos.retail.Field.*;
 
 @Component
 @Slf4j
@@ -37,6 +38,8 @@ public class InventoryListener implements StreamListener<String, MapRecord<Strin
 	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
+	@Autowired
+	private SimpMessageSendingOperations sendingOps;
 
 	private AddOptions addOptions = AddOptions.builder().replace(true).replacePartial(true).build();
 	private Subscription subscription;
@@ -60,8 +63,8 @@ public class InventoryListener implements StreamListener<String, MapRecord<Strin
 	@Override
 	public void onMessage(MapRecord<String, String, String> message) {
 		Map<String, String> inventoryUpdate = message.getValue();
-		String store = inventoryUpdate.get(Field.store.name());
-		String sku = inventoryUpdate.get(Field.sku.name());
+		String store = inventoryUpdate.get(STORE);
+		String sku = inventoryUpdate.get(SKU);
 		RediSearchCommands<String, String> commands = connection.sync();
 		String productDocId = utils.key(config.getProductKeyspace(), sku);
 		Map<String, String> productDoc = commands.get(config.getProductIndex(), productDocId);
@@ -75,25 +78,34 @@ public class InventoryListener implements StreamListener<String, MapRecord<Strin
 			log.warn("Unknown store {}", storeDocId);
 			return;
 		}
-		String docId = utils.key(config.getInventoryKeyspace(), store, sku);
+		String id = utils.key(store, sku);
+		String docId = utils.key(config.getInventoryKeyspace(), id);
 		Map<String, String> inventory = commands.get(config.getInventoryIndex(), docId);
 		if (inventory == null) {
 			inventory = new HashMap<>();
 			inventory.putAll(productDoc);
 			inventory.putAll(storeDoc);
-			inventory.put(Field.quantity.name(), "100");
+			inventory.put(Field.QUANTITY, "100");
+			inventory.put(Field.ID, id);
 		}
-		int quantity = Integer.parseInt(inventory.get(Field.quantity.name()));
-		int updateQuantity = Integer.parseInt(inventoryUpdate.get(Field.quantity.name()));
-		inventory.put(Field.delta.name(), String.valueOf(updateQuantity));
-		inventory.put(Field.quantity.name(), String.valueOf(Math.max(quantity + updateQuantity, 0)));
+		if (inventoryUpdate.containsKey(QUANTITY)) {
+			inventory.put(QUANTITY, inventoryUpdate.get(QUANTITY));
+			inventory.remove(DELTA);
+		}
+		if (inventoryUpdate.containsKey(DELTA)) {
+			int delta = Integer.parseInt(inventoryUpdate.get(DELTA));
+			int quantity = Integer.parseInt(inventory.get(QUANTITY));
+			inventory.put(DELTA, String.valueOf(delta));
+			inventory.put(QUANTITY, String.valueOf(Math.max(quantity + delta, 0)));
+		}
 		try {
 			commands.add(config.getInventoryIndex(), docId, 1.0, inventory, addOptions);
 		} catch (RedisCommandExecutionException e) {
 			log.error("Could not add document {}: {}", docId, inventory, e);
 		}
-		String streamKey = utils.key(config.getInventoryUpdatesStream(), store, sku);
-		commands.xadd(streamKey, inventory);
+		sendingOps.convertAndSend(config.getStomp().getInventoryTopic(), inventory);
+//		String streamKey = utils.key(config.getInventoryUpdatesStream(), store, sku);
+//		commands.xadd(streamKey, inventory);
 	}
 
 }

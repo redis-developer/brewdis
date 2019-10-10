@@ -33,6 +33,7 @@ riot file-import --file products.json --index styles --ft-command sugadd --sugge
 riot file-import --file products.json --keyspace categories --command sadd --members style.category.name
 
 redis-cli FT.CREATE inventory SCHEMA \
+	id TAG SORTABLE \
 	store TAG SORTABLE \
 	sku TAG SORTABLE \
 	abv NUMERIC SORTABLE \

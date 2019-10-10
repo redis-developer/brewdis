@@ -2,7 +2,6 @@ package com.redislabs.demos.retail;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +12,11 @@ import com.redislabs.lettusearch.search.Limit;
 import com.redislabs.lettusearch.search.SearchOptions;
 import com.redislabs.lettusearch.search.SearchResult;
 import com.redislabs.lettusearch.search.SearchResults;
+import com.redislabs.lettusearch.search.SortBy;
 import com.redislabs.lettusearch.suggest.SuggestGetOptions;
 import com.redislabs.lettusearch.suggest.SuggestResult;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Component
-@Slf4j
 public class ProductService {
 
 	@Autowired
@@ -27,8 +24,9 @@ public class ProductService {
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 
-	public List<SearchResult<String, String>> inventory() {
-		return connection.sync().search(config.getInventoryIndex(), "*");
+	public SearchResults<String, String> inventory() {
+		return connection.sync().search(config.getInventoryIndex(), "*",
+				SearchOptions.builder().sortBy(SortBy.builder().field(Field.ID).build()).build());
 	}
 
 	public Stream<SearchResult<String, String>> search(String category, String style, String keywords) {

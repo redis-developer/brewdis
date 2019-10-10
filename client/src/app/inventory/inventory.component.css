@@ -1,13 +1,19 @@
-.product-image {
-	height: 150px;
+table {
+  width: 100%;
 }
 
-.product-image img {
-	width: 80px;
-	height: 80px;
+.positive {
+  background-color: mediumseagreen;
 }
 
-.inventory {
-  display: flex;
-  flex-flow: row wrap;
+.negative {
+  background-color: crimson;
+}
+
+.adjust {
+  background-color: goldenrod;
+}
+
+.centered-cell {
+  text-align: center;
 }

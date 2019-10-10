@@ -1,16 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { StompService, StompConfig } from '@stomp/ng2-stompjs';
 import { HttpClient } from '@angular/common/http';
-import { MatTable } from '@angular/material';
-
-export interface InventoryData {
-  store: string;
-  sku: string;
-  id: string;
-  name: string;
-  quantity: number;
-  delta: number;
-}
 
 @Component({
   selector: 'app-inventory',
@@ -20,16 +10,15 @@ export interface InventoryData {
 export class InventoryComponent implements OnInit {
 
   API_URL = '/api/';
-  @ViewChild(MatTable,{static:true}) table: MatTable<any>;
 
   private stompService: StompService;
-  inventory: InventoryData[];
-  displayedColumns: string[] = ['id','name','quantity'];
+  inventory: [];
+  displayedColumns: string[] = ['store', 'sku', 'quantity'];
 
   constructor(private http: HttpClient) { }
 
   ngOnInit() {
-    this.http.get(this.API_URL + 'inventory').subscribe((inventory: InventoryData[]) => this.inventory = inventory);
+    this.http.get(this.API_URL + 'inventory').subscribe((inventory: any) => this.inventory = inventory);
     this.http.get(this.API_URL + 'config/stomp').subscribe((stomp: any) => this.connectStompService(stomp));
   }
 
@@ -47,18 +36,7 @@ export class InventoryComponent implements OnInit {
       debug: true
     };
     this.stompService = new StompService(stompConfig);
-    this.stompService.subscribe(config.inventoryTopic).subscribe(update => this.updateRowData(JSON.parse(update.body)));
-  }
-  
-  updateRowData(row_obj) {
-    this.inventory = this.inventory.filter((value,key)=>{
-      if(value.id == row_obj.id){
-        value.quantity = row_obj.quantity;
-        value.delta = row_obj.delta;
-      }
-      return true;
-    });
-    this.table.renderRows();
+    this.stompService.subscribe(config.inventoryTopic).subscribe(update => this.inventory=JSON.parse(update.body));
   }
 
 }
