@@ -60,5 +60,3 @@ redis-cli FT.CREATE inventory SCHEMA \
 	storeDescription TEXT \
 	storeType TAG SORTABLE \
 	zip TAG SORTABLE
-
-riot gen --batch 1 --max 10000000 --sleep 1000 --faker-fields "sku=number.numberBetween(1,1109)" "store=number.numberBetween(1,2615)" "quantity=number.numberBetween(-10,10)" --command xadd --keyspace inventory-updates

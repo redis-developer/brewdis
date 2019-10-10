@@ -88,9 +88,10 @@ public class InventoryListener implements StreamListener<String, MapRecord<Strin
 			inventory.put(Field.QUANTITY, "100");
 			inventory.put(Field.ID, id);
 		}
+		inventory.put(ADJUST, "false");
 		if (inventoryUpdate.containsKey(QUANTITY)) {
 			inventory.put(QUANTITY, inventoryUpdate.get(QUANTITY));
-			inventory.remove(DELTA);
+			inventory.put(ADJUST, "true");
 		}
 		if (inventoryUpdate.containsKey(DELTA)) {
 			int delta = Integer.parseInt(inventoryUpdate.get(DELTA));
@@ -98,12 +99,15 @@ public class InventoryListener implements StreamListener<String, MapRecord<Strin
 			inventory.put(DELTA, String.valueOf(delta));
 			inventory.put(QUANTITY, String.valueOf(Math.max(quantity + delta, 0)));
 		}
+//		log.info("convertAndSend: adjust={}", inventory.get(ADJUST));
+		sendingOps.convertAndSend(config.getStomp().getInventoryTopic(), inventory);
+		inventory.remove(DELTA);
+		inventory.remove(ADJUST);
 		try {
 			commands.add(config.getInventoryIndex(), docId, 1.0, inventory, addOptions);
 		} catch (RedisCommandExecutionException e) {
 			log.error("Could not add document {}: {}", docId, inventory, e);
 		}
-		sendingOps.convertAndSend(config.getStomp().getInventoryTopic(), inventory);
 //		String streamKey = utils.key(config.getInventoryUpdatesStream(), store, sku);
 //		commands.xadd(streamKey, inventory);
 	}

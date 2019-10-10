@@ -10,6 +10,7 @@ export interface InventoryData {
   name: string;
   quantity: number;
   delta: number;
+  adjust: string;
 }
 
 @Component({
@@ -24,7 +25,7 @@ export class InventoryComponent implements OnInit {
 
   private stompService: StompService;
   inventory: InventoryData[];
-  displayedColumns: string[] = ['id','name','quantity'];
+  displayedColumns: string[] = ['id','label','name','quantity'];
 
   constructor(private http: HttpClient) { }
 
@@ -53,8 +54,17 @@ export class InventoryComponent implements OnInit {
   updateRowData(row_obj) {
     this.inventory = this.inventory.filter((value,key)=>{
       if(value.id == row_obj.id){
-        value.quantity = row_obj.quantity;
-        value.delta = row_obj.delta;
+    	if ('quantity' in row_obj) {
+    		value.quantity = row_obj.quantity;
+    	}
+    	if ('delta' in row_obj) {
+    		value.delta = row_obj.delta;
+    	}
+    	if ('adjust' in row_obj) {
+    		value.adjust = row_obj.adjust;
+    	} else {
+    		row_obj.adjust = 'false';
+    	}
       }
       return true;
     });

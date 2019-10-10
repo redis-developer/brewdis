@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.Limit;
 import com.redislabs.lettusearch.search.SearchOptions;
-import com.redislabs.lettusearch.search.SearchResult;
 import com.redislabs.lettusearch.search.SearchResults;
 import com.redislabs.lettusearch.search.SortBy;
 import com.redislabs.lettusearch.suggest.SuggestGetOptions;
@@ -26,10 +25,10 @@ public class ProductService {
 
 	public SearchResults<String, String> inventory() {
 		return connection.sync().search(config.getInventoryIndex(), "*",
-				SearchOptions.builder().sortBy(SortBy.builder().field(Field.ID).build()).build());
+				SearchOptions.builder().sortBy(SortBy.builder().field(Field.ID).build()).limit(Limit.builder().num(config.getSearchResultsLimit()*10).build()).build());
 	}
 
-	public Stream<SearchResult<String, String>> search(String category, String style, String keywords) {
+	public SearchResults<String, String> search(String category, String style, String keywords) {
 		String query = "";
 		if (category != null && category.length() > 0) {
 			query += tag("style.category.name", category);
@@ -43,9 +42,8 @@ public class ProductService {
 		if (query.length() == 0) {
 			query = "*";
 		}
-		SearchResults<String, String> results = connection.sync().search(config.getProductIndex(), query,
+		return connection.sync().search(config.getProductIndex(), query,
 				SearchOptions.builder().limit(Limit.builder().num(config.getSearchResultsLimit()).build()).build());
-		return results.stream().filter(r -> r.containsKey("labels.contentAwareMedium"));
 	}
 
 	private String tag(String field, String value) {

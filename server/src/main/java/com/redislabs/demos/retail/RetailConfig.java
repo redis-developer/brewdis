@@ -27,6 +27,9 @@ public class RetailConfig {
 	private boolean fuzzySuggest;
 	private String keySeparator = ":";
 	private StompConfig stomp = new StompConfig();
+	private long generatorSleep = 10;
+	private int generatorDeltaMin = -10;
+	private int generatorDeltaMax = 10;
 
 	@Data
 	public static class StompConfig implements Serializable {

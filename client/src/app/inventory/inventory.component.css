@@ -2,6 +2,8 @@ table {
   width: 100%;
 }
 
+img { width: 30px; height: 30px; }
+
 .positive {
   background-color: mediumseagreen;
 }

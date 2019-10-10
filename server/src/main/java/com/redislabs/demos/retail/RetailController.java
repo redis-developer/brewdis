@@ -1,6 +1,8 @@
 package com.redislabs.demos.retail;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,8 @@ class RetailController {
 	private RetailConfig config;
 	@Autowired
 	private ProductService productService;
+	@Autowired
+	private InventoryGenerator generator;
 
 	@GetMapping("/config/stomp")
 	public StompConfig stompConfig() {
@@ -38,7 +42,12 @@ class RetailController {
 			@RequestParam(name = "category", required = false) String category,
 			@RequestParam(name = "style", required = false) String style,
 			@RequestParam(name = "query", required = false) String query) {
-		return productService.search(category, style, query);
+		SearchResults<String, String> results = productService.search(category, style, query);
+		List<SearchResult<String, String>> list = results.stream()
+				.filter(r -> r.containsKey("labels.contentAwareMedium")).collect(Collectors.toList());
+		List<String> skus = list.stream().map(r -> r.get(Field.SKU)).collect(Collectors.toList());
+		generator.setSkus(skus);
+		return list.stream();
 	}
 
 	@GetMapping("/products/styles")
