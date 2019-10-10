@@ -8,11 +8,11 @@
 		</mat-select>
     </mat-form-field>
 	<mat-form-field class="style-field" hintLabel="Type a few characters">
-		<input type="text" matInput placeholder="Style" [formControl]="styleField" [matAutocomplete]="auto">
+		<input matInput placeholder="Style" [matAutocomplete]="auto" [formControl]="styleField">
 	</mat-form-field>
 	<mat-autocomplete class="style-field" #auto="matAutocomplete">
 		<mat-option *ngFor="let style of styles" [value]="style">
-		  {{ style }}
+			<span>{{ style }}</span>
 		</mat-option>
 	</mat-autocomplete>
 	<mat-form-field class="search-field" hintLabel="RediSearch query, e.g. '@genres:{Funk} @year:[1968 1983]'"> <input matInput
@@ -24,7 +24,7 @@
 <div class="search-results" fxLayout="row wrap" fxLayout.xs="column"
 	fxLayoutGap="1%" fxLayoutAlign="left">
 	<div class="product-card" *ngFor="let product of results | async">
-		<img *ngIf="product.labels != undefined" src="{{product.labels.contentAwareMedium}}" alt="{{product.name}}">
+		<img src="{{product.label}}" alt="{{product.name}}">
 		<button mat-mini-fab color="primary" class="like-button-overlay mat-fab mat-primary" (click)="like(product)">
        		<mat-icon aria-label="Favorite">thumb_up_alt</mat-icon>
        	</button>

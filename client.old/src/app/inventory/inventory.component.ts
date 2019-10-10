@@ -12,7 +12,7 @@ export class InventoryComponent implements OnInit {
   API_URL = '/api/';
 
   private stompService: StompService;
-  inventory = [];
+  private inventory = [];
 
   constructor(private http: HttpClient) { }
 

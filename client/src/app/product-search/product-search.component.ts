@@ -3,13 +3,7 @@ import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular
 import { SearchService } from '../search.service';
 import { Observable } from 'rxjs';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
-import {
-  map,
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
-  tap
-} from 'rxjs/operators';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-product-search',
@@ -20,10 +14,10 @@ export class ProductSearchComponent implements OnInit {
   API_URL = '/api/';
   categories = [];
   selectedCategory = '';
-  private results: Observable<any>;
-  private styles: Observable<any>;
-  private styleField: FormControl;
-  private searchField: FormControl;
+  results: Observable<any>;
+  styles = [];
+  styleField: FormControl;
+  searchField: FormControl;
 
   constructor(private http: HttpClient, private searchService: SearchService) { }
 
@@ -51,6 +45,7 @@ export class ProductSearchComponent implements OnInit {
 
   search() {
     this.results = this.searchService.productSearch(this.selectedCategory, this.styleField.value, this.searchField.value);
+	console.log(this.results);
   }
 
 }

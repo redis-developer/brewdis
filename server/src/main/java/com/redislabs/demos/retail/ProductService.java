@@ -2,6 +2,7 @@ package com.redislabs.demos.retail;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,10 @@ import com.redislabs.lettusearch.search.SearchResults;
 import com.redislabs.lettusearch.suggest.SuggestGetOptions;
 import com.redislabs.lettusearch.suggest.SuggestResult;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component
+@Slf4j
 public class ProductService {
 
 	@Autowired
@@ -43,7 +47,7 @@ public class ProductService {
 		}
 		SearchResults<String, String> results = connection.sync().search(config.getProductIndex(), query,
 				SearchOptions.builder().limit(Limit.builder().num(config.getSearchResultsLimit()).build()).build());
-		return results.stream();
+		return results.stream().filter(r -> r.containsKey("labels.contentAwareMedium"));
 	}
 
 	private String tag(String field, String value) {

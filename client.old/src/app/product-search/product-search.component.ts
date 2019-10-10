@@ -20,10 +20,10 @@ export class ProductSearchComponent implements OnInit {
   API_URL = '/api/';
   categories = [];
   selectedCategory = '';
-  results: Observable<any>;
-  styles = [];
-  styleField: FormControl;
-  searchField: FormControl;
+  private results: Observable<any>;
+  private styles: Observable<any>;
+  private styleField: FormControl;
+  private searchField: FormControl;
 
   constructor(private http: HttpClient, private searchService: SearchService) { }
 
