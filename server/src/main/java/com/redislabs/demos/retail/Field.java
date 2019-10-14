@@ -8,6 +8,6 @@ public class Field {
 	public final static String QUANTITY = "quantity";
 	public final static String DESCRIPTION = "description";
 	public final static String DELTA = "delta";
-	public final static String ADJUST = "adjust";
+	public final static String TIME = "time";
 
 }

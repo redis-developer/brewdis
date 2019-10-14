@@ -11,47 +11,49 @@ export class SearchService {
 
   constructor(private http: HttpClient) { }
 
-  productStyles(prefix: string): Observable<any> {
+  styles(categoryId: string): Observable<any> {
     let params = new HttpParams();
-    if (prefix != null) {
-      params = params.set('prefix', prefix);
+    if (categoryId != null) {
+      params = params.set('categoryId', categoryId);
     }
-    return this.http.get(this.API_URL + 'products/styles', { params });
-  }
-  
-  productCategories(): Observable<any> {
-    let params = new HttpParams();
-    return this.http.get(this.API_URL + 'products/categories', { params });
+    return this.http.get(this.API_URL + 'styles', { params });
   }
 
-  productSearch(category: string, style: string, query: string): Observable<any> {
+  categories(): Observable<any> {
     let params = new HttpParams();
-    if (category != null) {
-    	params = params.set('category', category);
+    return this.http.get(this.API_URL + 'categories', { params });
+  }
+
+  productSearch(longitude: any, latitude: any, categoryId: string, styleId: string, query: string): Observable<any> {
+    let params = new HttpParams();
+    params = params.set('longitude', longitude);
+    params = params.set('latitude', latitude);
+    if (categoryId != null) {
+      params = params.set('categoryId', categoryId);
     }
-    if (style != null) {
-    	params = params.set('style', style);
+    if (styleId != null) {
+      params = params.set('styleId', styleId);
     }
-    if (query!==null) {
+    if (query !== null) {
       params = params.set('query', query);
     }
-    return this.http.get(this.API_URL + 'products/search', { params });
+    return this.http.get(this.API_URL + 'search', { params });
   }
 
-  likeAlbum(album: any) {
-    const options = {
-      headers: new HttpHeaders({
-        'Content-Type':  'application/json'
-      })
-    };
-    this.http.post(this.API_URL + 'likes/album', album, options).subscribe(
-      (val) => {
-      },
-      response => {
-          console.log('POST call in error', response);
-      },
-      () => {
-      });
+  availability(sku: string, longitude: any, latitude: any) {
+    let params = new HttpParams();
+    params = params.set('sku', sku);
+    params = params.set('longitude', longitude);
+    params = params.set('latitude', latitude);
+    return this.http.get(this.API_URL + 'availability', { params });
   }
-  
+
+  inventory(store: string) {
+    let params = new HttpParams();
+    if (store != null) {
+      params = params.set('store', store);
+    }
+    return this.http.get(this.API_URL + 'inventory', { params });
+  }
+
 }

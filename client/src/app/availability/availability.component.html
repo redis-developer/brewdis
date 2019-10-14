@@ -1,0 +1,11 @@
+<agm-map [latitude]="lat" [longitude]="lng">
+    <agm-marker [latitude]="lat" [longitude]="lng"></agm-marker>
+    <agm-marker *ngFor="let store of stores" [latitude]="store.latitude" [longitude]="store.longitude"
+        [iconUrl]="{ url: 'assets/brewdis.svg', scaledSize: { width: 32, height: 32 }}">
+
+        <agm-info-window>
+            <a href="#/inventory?store={{ store.store }}">{{store.description}}</a>
+        </agm-info-window>
+    </agm-marker>
+
+</agm-map>

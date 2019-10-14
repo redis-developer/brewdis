@@ -1,28 +1,28 @@
 <table mat-table #table [dataSource]="inventory" class="mat-elevation-z8">
 
-	<ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef>Store:SKU</th>
-	  <td mat-cell *matCellDef="let row">{{row.id}}</td>
+	<ng-container matColumnDef="store">
+		<th mat-header-cell *matHeaderCellDef>Store</th>
+		<td mat-cell *matCellDef="let row">{{row.description}}</td>
 	</ng-container>
-	
+
 	<ng-container matColumnDef="label">
-	  <th mat-header-cell *matHeaderCellDef>Label</th>
-	  <td mat-cell *matCellDef="let row"><img src="{{ row['labels.icon'] }}"></td>
+		<th mat-header-cell *matHeaderCellDef>Label</th>
+		<td mat-cell *matCellDef="let row"><img src="{{ row.hasOwnProperty('labels.icon') ? row['labels.icon'] : 'assets/brewdis.svg'}}"></td>
 	</ng-container>
 
 	<ng-container matColumnDef="name">
-	  <th mat-header-cell *matHeaderCellDef>Name</th>
-	  <td mat-cell *matCellDef="let row" >{{row.name}}</td>
+		<th mat-header-cell *matHeaderCellDef>Name</th>
+		<td mat-cell *matCellDef="let row">{{row.name}}</td>
 	</ng-container>
 
 	<ng-container matColumnDef="quantity">
-	  <th mat-header-cell *matHeaderCellDef>Quantity</th>
-	  <td mat-cell *matCellDef="let row" [ngClass]="{
-		'positive' : row.delta > 0, 'negative' : row.delta < 0, 'adjust' : row.adjust == 'true'
+		<th mat-header-cell *matHeaderCellDef>Quantity</th>
+		<td mat-cell *matCellDef="let row" [ngClass]="{
+		'negative' : isRecent(row.time) && row.delta<0, 'positive' : isRecent(row.time) && row.delta>0, 'low' : row.quantity<10
 		}" style="padding-left: 10px">{{row.quantity}}</td>
 	</ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;" ></tr>
-    
+	<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+	<tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
 </table>

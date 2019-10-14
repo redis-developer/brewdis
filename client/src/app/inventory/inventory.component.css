@@ -1,21 +1,37 @@
 table {
-  width: 100%;
+	width: 100%;
 }
 
-img { width: 30px; height: 30px; }
-
-.positive {
-  background-color: mediumseagreen;
-}
-
-.negative {
-  background-color: crimson;
-}
-
-.adjust {
-  background-color: goldenrod;
+img {
+	width: 30px;
+	height: 30px;
 }
 
 .centered-cell {
-  text-align: center;
+	text-align: center;
+}
+
+.negative {
+	background-color: #ffa726;
+	color: seashell;
+}
+
+.negative .mat-cell {
+	color: seashell;
+}
+
+.positive {
+	background-color: royalblue;
+}
+
+.positive .mat-cell {
+	color: seashell;
+}
+
+.low {
+	background-color: #e64a19;
+}
+
+.low .mat-cell {
+	color: seashell;
 }

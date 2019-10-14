@@ -13,39 +13,32 @@ import { debounceTime } from 'rxjs/operators';
 export class ProductSearchComponent implements OnInit {
   API_URL = '/api/';
   categories = [];
-  selectedCategory = '';
-  results: Observable<any>;
   styles = [];
+  categoryField: FormControl;
   styleField: FormControl;
+  selectedCategoryId = '';
+  selectedStyleId = '';
   searchField: FormControl;
+  results: Observable<any>;
 
-  constructor(private http: HttpClient, private searchService: SearchService) { }
+  constructor(private searchService: SearchService) { }
 
   ngOnInit() {
-    this.searchField = new FormControl();
+    this.categoryField = new FormControl();
+    this.categoryField.valueChanges.subscribe((category: any)  => this.searchService.styles(this.selectedCategoryId).subscribe(data => this.styles = data));
     this.styleField = new FormControl();
-    this.styleField.valueChanges.pipe(
-      debounceTime(300)
-    ).subscribe(prefix => this.searchService.productStyles(this.styleField.value).subscribe(data => { this.styles = data; }));
-    this.searchService.productCategories().subscribe(data => { this.categories = data; });
-  }
-
-  styleSelected(style: any) {
-    this.searchField.setValue('@style:{' + style + '} ');
-  }
-
-  like(album: any) {
-    this.searchService.likeAlbum(album);
-    album.like = true;
-  }
-
-  displayFn(style: any) {
-    if (style) { return style; }
+    this.searchField = new FormControl();
+    this.searchService.categories().subscribe(data => this.categories = data);
   }
 
   search() {
-    this.results = this.searchService.productSearch(this.selectedCategory, this.styleField.value, this.searchField.value);
-	console.log(this.results);
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          this.results = this.searchService.productSearch(position.coords.longitude, position.coords.latitude, this.selectedCategoryId, this.selectedStyleId, this.searchField.value);
+        });
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
   }
 
 }

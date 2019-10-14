@@ -1,11 +1,23 @@
 package com.redislabs.demos.retail;
 
+import static com.redislabs.demos.retail.Field.DELTA;
+import static com.redislabs.demos.retail.Field.QUANTITY;
+import static com.redislabs.demos.retail.Field.SKU;
+import static com.redislabs.demos.retail.Field.STORE;
+import static com.redislabs.demos.retail.Field.TIME;
+
 import java.time.Duration;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PreDestroy;
-
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -14,8 +26,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.data.redis.stream.Subscription;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Component;
 
 import com.redislabs.lettusearch.RediSearchCommands;
@@ -24,11 +36,11 @@ import com.redislabs.lettusearch.search.AddOptions;
 
 import io.lettuce.core.RedisCommandExecutionException;
 import lombok.extern.slf4j.Slf4j;
-import static com.redislabs.demos.retail.Field.*;
 
 @Component
 @Slf4j
-public class InventoryListener implements StreamListener<String, MapRecord<String, String, String>>, InitializingBean {
+public class InventoryUpdater
+		implements StreamListener<String, MapRecord<String, String, String>>, InitializingBean, DisposableBean {
 
 	@Autowired
 	private RetailConfig config;
@@ -43,21 +55,25 @@ public class InventoryListener implements StreamListener<String, MapRecord<Strin
 
 	private AddOptions addOptions = AddOptions.builder().replace(true).replacePartial(true).build();
 	private Subscription subscription;
+	private StreamMessageListenerContainer<String, MapRecord<String, String, String>> container;
+	private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+	private Random random = new Random();
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		StreamMessageListenerContainerOptions<String, MapRecord<String, String, String>> containerOptions = StreamMessageListenerContainerOptions
-				.builder().pollTimeout(Duration.ofMillis(1000)).build();
-		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
-				.create(redisTemplate.getConnectionFactory(), containerOptions);
+		container = StreamMessageListenerContainer.create(redisTemplate.getConnectionFactory(),
+				StreamMessageListenerContainerOptions.builder().pollTimeout(Duration.ofMillis(100)).build());
 		container.start();
 		subscription = container.receive(StreamOffset.latest(config.getInventoryUpdatesStream()), this);
 		subscription.await(Duration.ofSeconds(2));
 	}
 
-	@PreDestroy
-	public void teardown() {
+	@Override
+	public void destroy() throws Exception {
+		log.info("Cancelling inventory subscription");
 		subscription.cancel();
+		log.info("Stopping inventory listener container");
+		container.stop();
 	}
 
 	@Override
@@ -85,31 +101,39 @@ public class InventoryListener implements StreamListener<String, MapRecord<Strin
 			inventory = new HashMap<>();
 			inventory.putAll(productDoc);
 			inventory.putAll(storeDoc);
-			inventory.put(Field.QUANTITY, "100");
+			inventory.put(Field.QUANTITY, String.valueOf(config.getInventoryRestockingQuantity()));
 			inventory.put(Field.ID, id);
 		}
-		inventory.put(ADJUST, "false");
-		if (inventoryUpdate.containsKey(QUANTITY)) {
-			inventory.put(QUANTITY, inventoryUpdate.get(QUANTITY));
-			inventory.put(ADJUST, "true");
+		int delta = Integer.parseInt(inventoryUpdate.get(DELTA));
+		int oldQuantity = Integer.parseInt(inventory.get(QUANTITY));
+		int newQuantity = oldQuantity + delta;
+		if (newQuantity < 0) {
+			newQuantity = 0;
 		}
-		if (inventoryUpdate.containsKey(DELTA)) {
-			int delta = Integer.parseInt(inventoryUpdate.get(DELTA));
-			int quantity = Integer.parseInt(inventory.get(QUANTITY));
-			inventory.put(DELTA, String.valueOf(delta));
-			inventory.put(QUANTITY, String.valueOf(Math.max(quantity + delta, 0)));
+		if (newQuantity == 0) {
+			executor.schedule(new Runnable() {
+
+				@Override
+				public void run() {
+					int delta = random.nextInt(config.getInventoryRestockingQuantity());
+					redisTemplate.opsForStream().add(config.getInventoryUpdatesStream(),
+							Map.of(STORE, store, SKU, sku, DELTA, String.valueOf(delta)));
+				}
+			}, random.nextInt(config.getInventoryRestockingDelay()), TimeUnit.SECONDS);
 		}
-//		log.info("convertAndSend: adjust={}", inventory.get(ADJUST));
+		if (newQuantity == oldQuantity) {
+			return;
+		}
+		inventory.put(QUANTITY, String.valueOf(newQuantity));
+		inventory.put(TIME, ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+		inventory.put(DELTA, String.valueOf(delta));
 		sendingOps.convertAndSend(config.getStomp().getInventoryTopic(), inventory);
 		inventory.remove(DELTA);
-		inventory.remove(ADJUST);
 		try {
 			commands.add(config.getInventoryIndex(), docId, 1.0, inventory, addOptions);
 		} catch (RedisCommandExecutionException e) {
 			log.error("Could not add document {}: {}", docId, inventory, e);
 		}
-//		String streamKey = utils.key(config.getInventoryUpdatesStream(), store, sku);
-//		commands.xadd(streamKey, inventory);
 	}
 
 }

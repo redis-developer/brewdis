@@ -1,7 +1,6 @@
 package com.redislabs.demos.retail;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,7 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.redislabs.demos.retail.RetailConfig.StompConfig;
-import com.redislabs.lettusearch.search.SearchResult;
+import com.redislabs.demos.retail.model.Category;
+import com.redislabs.demos.retail.model.Style;
 import com.redislabs.lettusearch.search.SearchResults;
 
 import lombok.RequiredArgsConstructor;
@@ -30,40 +30,48 @@ class RetailController {
 	@Autowired
 	private ProductService productService;
 	@Autowired
-	private InventoryGenerator generator;
+	private InventoryUpdateGenerator generator;
 
 	@GetMapping("/config/stomp")
 	public StompConfig stompConfig() {
 		return config.getStomp();
 	}
 
-	@GetMapping("/products/search")
-	public Stream<SearchResult<String, String>> productSearch(
-			@RequestParam(name = "category", required = false) String category,
-			@RequestParam(name = "style", required = false) String style,
+	@GetMapping("/search")
+	public SearchResults<String, String> products(@RequestParam(name = "longitude", required = true) Double longitude,
+			@RequestParam(name = "latitude", required = true) Double latitude,
+			@RequestParam(name = "categoryId", required = false) String categoryId,
+			@RequestParam(name = "styleId", required = false) String styleId,
 			@RequestParam(name = "query", required = false) String query) {
-		SearchResults<String, String> results = productService.search(category, style, query);
-		List<SearchResult<String, String>> list = results.stream()
-				.filter(r -> r.containsKey("labels.contentAwareMedium")).collect(Collectors.toList());
-		List<String> skus = list.stream().map(r -> r.get(Field.SKU)).collect(Collectors.toList());
-		generator.setSkus(skus);
-		return list.stream();
+		SearchResults<String, String> results = productService.searchProducts(categoryId, styleId, query);
+		List<String> skus = results.stream().map(r -> r.get(Field.SKU)).collect(Collectors.toList());
+		List<String> stores = productService.stores(longitude, latitude).stream().map(r -> r.get(Field.STORE))
+				.collect(Collectors.toList());
+		generator.generate(skus, stores);
+		return results;
 	}
 
-	@GetMapping("/products/styles")
-	public Stream<String> productStyles(
-			@RequestParam(name = "prefix", defaultValue = "", required = false) String prefix) {
-		return productService.styles(prefix);
+	@GetMapping("/styles")
+	public Stream<Style> styles(
+			@RequestParam(name = "categoryId", defaultValue = "", required = false) String categoryId) {
+		return productService.styles(categoryId);
 	}
 
-	@GetMapping("/products/categories")
-	public Set<String> productCategories() {
+	@GetMapping("/categories")
+	public Stream<Category> categories() {
 		return productService.categories();
 	}
 
 	@GetMapping("/inventory")
-	public SearchResults<String, String> inventory() {
-		return productService.inventory();
+	public SearchResults<String, String> inventory(@RequestParam(name = "store", required = false) String store) {
+		return productService.searchInventory(store);
+	}
+
+	@GetMapping("/availability")
+	public SearchResults<String, String> availability(@RequestParam(name = "sku", required = true) String sku,
+			@RequestParam(name = "longitude", required = true) Double longitude,
+			@RequestParam(name = "latitude", required = true) Double latitude) {
+		return productService.availability(sku, longitude, latitude);
 	}
 
 }

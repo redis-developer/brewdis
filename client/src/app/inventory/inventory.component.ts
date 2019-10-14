@@ -1,16 +1,18 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute } from "@angular/router";
 import { StompService, StompConfig } from '@stomp/ng2-stompjs';
 import { HttpClient } from '@angular/common/http';
 import { MatTable } from '@angular/material';
+import { SearchService } from '../search.service';
 
 export interface InventoryData {
   store: string;
   sku: string;
+  description: string;
   id: string;
   name: string;
   quantity: number;
-  delta: number;
-  adjust: string;
+  time: string;
 }
 
 @Component({
@@ -21,16 +23,19 @@ export interface InventoryData {
 export class InventoryComponent implements OnInit {
 
   API_URL = '/api/';
-  @ViewChild(MatTable,{static:true}) table: MatTable<any>;
+  @ViewChild(MatTable, { static: true }) table: MatTable<any>;
 
   private stompService: StompService;
   inventory: InventoryData[];
-  displayedColumns: string[] = ['id','label','name','quantity'];
+  store: string;
+  displayedColumns: string[] = ['store', 'label', 'name', 'quantity'];
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private route: ActivatedRoute, private searchService: SearchService) { }
 
   ngOnInit() {
-    this.http.get(this.API_URL + 'inventory').subscribe((inventory: InventoryData[]) => this.inventory = inventory);
+    this.store = this.route.snapshot.queryParamMap.get("store");
+    console.log(this.store);
+    this.searchService.inventory(this.store).subscribe((inventory: InventoryData[]) => this.inventory = inventory);
     this.http.get(this.API_URL + 'config/stomp').subscribe((stomp: any) => this.connectStompService(stomp));
   }
 
@@ -50,25 +55,27 @@ export class InventoryComponent implements OnInit {
     this.stompService = new StompService(stompConfig);
     this.stompService.subscribe(config.inventoryTopic).subscribe(update => this.updateRowData(JSON.parse(update.body)));
   }
-  
+
   updateRowData(row_obj) {
-    this.inventory = this.inventory.filter((value,key)=>{
-      if(value.id == row_obj.id){
-    	if ('quantity' in row_obj) {
-    		value.quantity = row_obj.quantity;
-    	}
-    	if ('delta' in row_obj) {
-    		value.delta = row_obj.delta;
-    	}
-    	if ('adjust' in row_obj) {
-    		value.adjust = row_obj.adjust;
-    	} else {
-    		row_obj.adjust = 'false';
-    	}
+    this.inventory = this.inventory.filter((value, key) => {
+      if (value.id == row_obj.id) {
+        if ('quantity' in row_obj) {
+          value.quantity = row_obj.quantity;
+        }
+        if ('time' in row_obj) {
+          value.time = row_obj.time;
+        }
       }
       return true;
     });
     this.table.renderRows();
+  }
+
+  isRecent(time: string) {
+    var updateTime = new Date(time);
+    var currentTime = new Date();
+    var duration = currentTime.valueOf() - updateTime.valueOf();
+    return duration<1000;
   }
 
 }

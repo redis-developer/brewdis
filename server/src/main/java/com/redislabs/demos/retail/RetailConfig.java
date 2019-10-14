@@ -14,7 +14,8 @@ import lombok.Data;
 @Data
 public class RetailConfig {
 
-	private int searchResultsLimit = 300;
+	private int maxInventorySearchResults = 100;
+	private int maxProductSearchResults = 30;
 	private String productIndex = "products";
 	private String productKeyspace = "product";
 	private String storeIndex = "stores";
@@ -27,9 +28,14 @@ public class RetailConfig {
 	private boolean fuzzySuggest;
 	private String keySeparator = ":";
 	private StompConfig stomp = new StompConfig();
-	private long generatorSleep = 10;
-	private int generatorDeltaMin = -10;
-	private int generatorDeltaMax = 10;
+	private long generatorSleep = 100;
+	private int generatorSkuCount = 10;
+	private long generatorDuration = 1200;
+	private String availabilityRadius = "100 mi";
+	private int inventoryRestockingQuantity = 50;
+	private int inventoryRestockingDelay = 10;
+	private int inventoryDeltaMin = -10;
+	private int inventoryDeltaMax = -1;
 
 	@Data
 	public static class StompConfig implements Serializable {

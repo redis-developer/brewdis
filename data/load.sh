@@ -23,11 +23,15 @@ riot file-import --file stores.json --proc "store=#context.index+1" --index stor
 redis-cli FT.CREATE products SCHEMA \
 	sku TAG SORTABLE \
 	abv NUMERIC SORTABLE \
+	ibu NUMERIC SORTABLE \
 	style.category.name TAG SORTABLE \
+	style.category.id TAG SORTABLE \
 	description TEXT \
 	name TEXT SORTABLE \
 	isOrganic TAG SORTABLE \
-	style.name TAG SORTABLE
+	style.id TAG SORTABLE \
+	style.name TAG SORTABLE \
+	style.description TEXT
 riot file-import --file products.json --proc "sku=#context.index+1" --index products --keyspace product --keys sku
 riot file-import --file products.json --index styles --ft-command sugadd --suggest style.name --suggest-increment
 riot file-import --file products.json --keyspace categories --command sadd --members style.category.name
