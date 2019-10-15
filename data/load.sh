@@ -37,6 +37,11 @@ riot file-import --file products.json --proc "sku=remove('id')" --index products
 echo "Creating inventory index"
 redis-cli FT.CREATE inventory SCHEMA \
 	id TAG SORTABLE \
+	availableToPromise NUMERIC SORTABLE \
+	onHand NUMERIC SORTABLE \
+	allocated NUMERIC SORTABLE \
+	reserved NUMERIC SORTABLE \
+	virtualHold NUMERIC SORTABLE \
 	store TAG SORTABLE \
 	sku TAG SORTABLE \
 	abv NUMERIC SORTABLE \

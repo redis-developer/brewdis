@@ -5,33 +5,42 @@ table {
 }
 
 table td {
-    vertical-align: middle;
-    position: relative;
+	vertical-align: middle;
+	position: relative;
 }
 
 table td img {
 	width: 50px;
 	padding-right: 5px;
-    vertical-align: middle;
-    display: inline-block;
+	vertical-align: middle;
+	display: inline-block;
 }
 
 table td p {
-    display: inline-block;
-    vertical-align: middle
+	display: inline-block;
+	vertical-align: middle
 }
 
 .negative {
-	background-color: #ffa726;
-	color: seashell;
+	background-color: indigo;
 }
 
 .positive {
 	background-color: royalblue;
-	color: seashell;
 }
 
 .low {
 	background-color: #e64a19;
+}
+
+.mid {
+	background-color: goldenrod;
+}
+
+.high {
+	background-color: green;
+}
+
+.mat-cell {
 	color: seashell;
 }

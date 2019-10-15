@@ -13,7 +13,11 @@ export interface InventoryData {
   description: string;
   id: string;
   name: string;
-  quantity: number;
+  availableToPromise: number;
+  onHand: number;
+  allocated: number;
+  reserved: number;
+  virtualHold: number;
   delta: number;
   time: string;
 }
@@ -32,7 +36,7 @@ export class InventoryComponent implements OnInit {
   private stompService: StompService;
   dataSource = new MatTableDataSource();
   store: string;
-  displayedColumns: string[] = ['store', 'sku', 'name', 'quantity'];
+  displayedColumns: string[] = ['store', 'sku', 'name', 'availableToPromise', 'onHand', 'allocated', 'reserved', 'virtualHold'];
 
   constructor(private http: HttpClient, private route: ActivatedRoute, private searchService: SearchService) { }
 
@@ -64,7 +68,11 @@ export class InventoryComponent implements OnInit {
   updateRowData(row_obj) {
     this.dataSource.data = this.dataSource.data.filter((value: InventoryData, key) => {
       if (value.id == row_obj.id) {
-        value.quantity = row_obj.quantity;
+        value.availableToPromise = row_obj.availableToPromise;
+        value.onHand = row_obj.onHand;
+        value.allocated = row_obj.allocated;
+        value.reserved = row_obj.reserved;
+        value.virtualHold = row_obj.virtualHold;
         value.time = row_obj.time;
         value.delta = row_obj.delta;
       }
