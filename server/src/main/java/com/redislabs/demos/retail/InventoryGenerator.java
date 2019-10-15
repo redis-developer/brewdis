@@ -1,11 +1,6 @@
 package com.redislabs.demos.retail;
 
-import static com.redislabs.demos.retail.Field.DELTA;
-import static com.redislabs.demos.retail.Field.DESCRIPTION;
-import static com.redislabs.demos.retail.Field.EPOCH;
-import static com.redislabs.demos.retail.Field.QUANTITY;
-import static com.redislabs.demos.retail.Field.STORE_DESCRIPTION;
-import static com.redislabs.demos.retail.Field.TIME;
+import static com.redislabs.demos.retail.Field.*;
 
 import java.time.Duration;
 import java.time.ZoneOffset;
@@ -96,8 +91,10 @@ public class InventoryGenerator implements InitializingBean, DisposableBean {
 					SearchOptions.builder().noContent(true)
 							.limit(Limit.builder().num(config.getInventory().getGenerator().getCleanupLimit()).build())
 							.build());
-			log.info("Deleting {} inventory entries", results.size());
 			results.forEach(r -> connection.sync().del(config.getInventory().getIndex(), r.getDocumentId(), true));
+			if (results.size() > 0) {
+				log.info("Deleted {} inventory entries", results.size());
+			}
 		}
 	}
 
@@ -105,32 +102,41 @@ public class InventoryGenerator implements InitializingBean, DisposableBean {
 
 		private AddOptions addOptions = AddOptions.builder().replace(true).replacePartial(true).build();
 		private Random random = new Random();
-		private OfInt deltas;
+		private OfInt onHandDeltas;
 		private List<String> skus;
 		private List<String> stores;
 		private OfInt restockingDelays;
-		private OfInt restockingQuantities;
+		private OfInt onHands;
+		private OfInt allocateds;
+		private OfInt reserveds;
+		private OfInt virtualHolds;
 
 		public InventoryUpdate(List<String> skus, List<String> stores) {
 			this.skus = skus;
 			this.stores = stores;
-			this.deltas = random.ints(config.getInventory().getGenerator().getDeltaMin(),
+			this.onHandDeltas = random.ints(config.getInventory().getGenerator().getDeltaMin(),
 					config.getInventory().getGenerator().getDeltaMax()).iterator();
 			this.restockingDelays = random.ints(config.getInventory().getGenerator().getRestockingDelayMin(),
 					config.getInventory().getGenerator().getRestockingDelayMax()).iterator();
-			this.restockingQuantities = random.ints(config.getInventory().getGenerator().getRestockingQuantityMin(),
-					config.getInventory().getGenerator().getRestockingQuantityMax()).iterator();
+			this.onHands = random.ints(config.getInventory().getGenerator().getOnHandMin(),
+					config.getInventory().getGenerator().getOnHandMax()).iterator();
+			this.allocateds = random.ints(config.getInventory().getGenerator().getAllocatedMin(),
+					config.getInventory().getGenerator().getAllocatedMax()).iterator();
+			this.reserveds = random.ints(config.getInventory().getGenerator().getReservedMin(),
+					config.getInventory().getGenerator().getReservedMax()).iterator();
+			this.virtualHolds = random.ints(config.getInventory().getGenerator().getVirtualHoldMin(),
+					config.getInventory().getGenerator().getVirtualHoldMax()).iterator();
 		}
 
 		@Override
 		public void run() {
 			String store = stores.get(random.nextInt(stores.size()));
 			String sku = skus.get(random.nextInt(skus.size()));
-			int delta = deltas.nextInt();
+			int delta = onHandDeltas.nextInt();
 			update(store, sku, delta);
 		}
 
-		private void update(String store, String sku, int delta) {
+		private void update(String store, String sku, int onHandDelta) {
 			RediSearchCommands<String, String> commands = connection.sync();
 			String productDocId = key(config.getProduct().getKeyspace(), sku);
 			Map<String, String> productDoc = commands.get(config.getProduct().getIndex(), productDocId);
@@ -153,31 +159,43 @@ public class InventoryGenerator implements InitializingBean, DisposableBean {
 				inventory = new HashMap<>();
 				inventory.putAll(productDoc);
 				inventory.putAll(storeDoc);
-				inventory.put(Field.QUANTITY, String.valueOf(restockingQuantities.nextInt()));
-				inventory.put(Field.ID, id);
+				inventory.put(ON_HAND, String.valueOf(onHands.nextInt()));
+				inventory.put(ALLOCATED, String.valueOf(allocateds.nextInt()));
+				inventory.put(RESERVED, String.valueOf(reserveds.nextInt()));
+				inventory.put(VIRTUAL_HOLD, String.valueOf(virtualHolds.nextInt()));
+				inventory.put(ID, id);
 			}
-			int oldQuantity = Integer.parseInt(inventory.get(QUANTITY));
-			int newQuantity = oldQuantity + delta;
-			if (newQuantity < 0) {
-				newQuantity = 0;
+			int previousOnHand = Integer.parseInt(inventory.get(ON_HAND));
+			int newOnHand = previousOnHand + onHandDelta;
+			if (newOnHand < 0) {
+				newOnHand = 0;
 			}
-			if (newQuantity == 0) {
+			if (newOnHand == 0) {
 				executor.schedule(new Runnable() {
 
 					@Override
 					public void run() {
-						update(store, sku, restockingQuantities.nextInt());
+						update(store, sku, onHands.nextInt());
 					}
 				}, restockingDelays.nextInt(), TimeUnit.SECONDS);
 			}
-			if (newQuantity == oldQuantity) {
+			if (newOnHand == previousOnHand) {
 				return;
 			}
-			inventory.put(QUANTITY, String.valueOf(newQuantity));
+			inventory.put(ON_HAND, String.valueOf(newOnHand));
+			int allocated = Integer.parseInt(inventory.get(ALLOCATED));
+			int reserved = Integer.parseInt(inventory.get(RESERVED));
+			int virtualHold = Integer.parseInt(inventory.get(VIRTUAL_HOLD));
+			int availableToPromise = newOnHand - (allocated + reserved + virtualHold);
+			if (availableToPromise < 0) {
+				log.info("Skipping because availableToPromise<0: {}", inventory);
+				return;
+			}
+			inventory.put(AVAILABLE_TO_PROMISE, String.valueOf(availableToPromise));
 			ZonedDateTime time = ZonedDateTime.now(ZoneOffset.UTC);
 			inventory.put(TIME, time.format(DateTimeFormatter.ISO_INSTANT));
 			inventory.put(EPOCH, String.valueOf(time.toEpochSecond()));
-			inventory.put(DELTA, String.valueOf(delta));
+			inventory.put(DELTA, String.valueOf(onHandDelta));
 			template.opsForStream().add(config.getInventory().getStream(), inventory);
 			sendingOps.convertAndSend(config.getStomp().getInventoryTopic(), inventory);
 			try {

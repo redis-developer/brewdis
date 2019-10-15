@@ -45,12 +45,18 @@ public class RetailConfig {
 
 	@Data
 	public static class InventoryGeneratorConfig {
-		private int restockingQuantityMin = 30;
-		private int restockingQuantityMax = 100;
+		private int onHandMin = 70;
+		private int onHandMax = 200;
 		private int restockingDelayMin = 10;
 		private int restockingDelayMax = 50;
 		private int deltaMin = -10;
 		private int deltaMax = -1;
+		private int allocatedMin = 1;
+		private int allocatedMax = 10;
+		private int reservedMin = 1;
+		private int reservedMax = 10;
+		private int virtualHoldMin = 1;
+		private int virtualHoldMax = 10;
 		private long sleep = 50;
 		private long cleanupPeriod = 30;
 		public int cleanupLimit = 10000;
