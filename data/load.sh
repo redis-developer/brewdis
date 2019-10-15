@@ -24,13 +24,13 @@ redis-cli FT.CREATE products SCHEMA \
 	sku TAG SORTABLE \
 	abv NUMERIC SORTABLE \
 	ibu NUMERIC SORTABLE \
-	style.category.name TAG SORTABLE \
+	style.category.name TEXT SORTABLE \
 	style.category.id TAG SORTABLE \
 	description TEXT \
 	name TEXT SORTABLE \
 	isOrganic TAG SORTABLE \
 	style.id TAG SORTABLE \
-	style.name TAG SORTABLE \
+	style.name TEXT SORTABLE \
 	style.description TEXT
 riot file-import --file products.json --proc "sku=remove('id')" --index products --keyspace product --keys sku
 
@@ -46,7 +46,6 @@ redis-cli FT.CREATE inventory SCHEMA \
 	sku TAG SORTABLE \
 	abv NUMERIC SORTABLE \
 	ibu NUMERIC SORTABLE \
-	address TEXT \
 	inventoryAvailableToSell TAG SORTABLE \
 	city TEXT SORTABLE \
 	country TAG SORTABLE \
@@ -58,13 +57,13 @@ redis-cli FT.CREATE inventory SCHEMA \
 	market TAG SORTABLE \
 	isOrganic TAG SORTABLE \
 	parent TAG SORTABLE \
-	style.category.name TAG SORTABLE \
-	description TEXT \
+	style.id TAG SORTABLE \
+	style.name TEXT SORTABLE \
+	style.category.id TAG SORTABLE \
+	style.category.name TEXT SORTABLE \
 	name TEXT SORTABLE \
-	style.name TAG SORTABLE \
 	rollupInventory TAG SORTABLE \
 	state TAG SORTABLE \
-	storeDescription TEXT \
 	type TAG SORTABLE \
 	postalCode TAG SORTABLE \
 	epoch NUMERIC SORTABLE
