@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from "@angular/router";
-import { } from 'googlemaps';
 import { SearchService } from '../search.service';
 
 @Component({
@@ -27,11 +26,11 @@ export class AvailabilityComponent implements OnInit {
       navigator.geolocation.getCurrentPosition((position) => {
         this.lat = position.coords.latitude;
         this.lng = position.coords.longitude;
-        this.searchService.availability(this.sku, position.coords.longitude, position.coords.latitude).subscribe((data: []) => this.stores = data);
       });
     } else {
       alert("Geolocation is not supported by this browser.");
     }
+    this.searchService.availability(this.sku, this.lng, this.lat).subscribe((data: []) => this.stores = data);
   }
 
 }
