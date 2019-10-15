@@ -14,28 +14,47 @@ import lombok.Data;
 @Data
 public class RetailConfig {
 
-	private int maxInventorySearchResults = 100;
-	private int maxProductSearchResults = 30;
-	private String productIndex = "products";
-	private String productKeyspace = "product";
-	private String storeIndex = "stores";
-	private String storeKeyspace = "store";
-	private String inventoryUpdatesStream = "inventory-updates";
-	private String inventoryIndex = "inventory";
-	private String inventoryKeyspace = "inventory";
-	private String styleSuggestionIndex = "styles";
-	private String categoriesKey = "categories";
-	private boolean fuzzySuggest;
 	private String keySeparator = ":";
 	private StompConfig stomp = new StompConfig();
-	private long generatorSleep = 100;
-	private int generatorSkuCount = 10;
-	private long generatorDuration = 1200;
 	private String availabilityRadius = "100 mi";
-	private int inventoryRestockingQuantity = 50;
-	private int inventoryRestockingDelay = 10;
-	private int inventoryDeltaMin = -10;
-	private int inventoryDeltaMax = -1;
+	private ProductConfig product = new ProductConfig();
+	private StoreConfig store = new StoreConfig();
+	private InventoryConfig inventory = new InventoryConfig();
+
+	@Data
+	public static class StoreConfig {
+		private String index = "stores";
+		private String keyspace = "store";
+	}
+
+	@Data
+	public static class ProductConfig {
+		private String index = "products";
+		private String keyspace = "product";
+		private int searchLimit = 50;
+	}
+
+	@Data
+	public static class InventoryConfig {
+		private String stream = "inventory-stream";
+		private String index = "inventory";
+		private String keyspace = "inventory";
+		private int searchLimit = 1000;
+		private InventoryGeneratorConfig generator = new InventoryGeneratorConfig();
+	}
+
+	@Data
+	public static class InventoryGeneratorConfig {
+		private int restockingQuantityMin = 30;
+		private int restockingQuantityMax = 100;
+		private int restockingDelayMin = 10;
+		private int restockingDelayMax = 50;
+		private int deltaMin = -10;
+		private int deltaMax = -1;
+		private long sleep = 50;
+		private long cleanupPeriod = 30;
+		public int cleanupLimit = 10000;
+	}
 
 	@Data
 	public static class StompConfig implements Serializable {

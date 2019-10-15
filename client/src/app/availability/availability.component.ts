@@ -27,7 +27,7 @@ export class AvailabilityComponent implements OnInit {
       navigator.geolocation.getCurrentPosition((position) => {
         this.lat = position.coords.latitude;
         this.lng = position.coords.longitude;
-        this.searchService.availability(this.sku, position.coords.longitude, position.coords.latitude).subscribe((data: []) => this.stores = data);
+        this.searchService.availability(this.sku, position.coords.longitude, position.coords.latitude).subscribe((data: []) => this.stores = data);
       });
     } else {
       alert("Geolocation is not supported by this browser.");

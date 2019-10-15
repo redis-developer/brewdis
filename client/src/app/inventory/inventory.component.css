@@ -1,14 +1,24 @@
 table {
+	margin-left: auto;
+	margin-right: auto;
 	width: 100%;
 }
 
-img {
-	width: 30px;
-	height: 30px;
+table td {
+    vertical-align: middle;
+    position: relative;
 }
 
-.centered-cell {
-	text-align: center;
+table td img {
+	width: 50px;
+	padding-right: 5px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+table td p {
+    display: inline-block;
+    vertical-align: middle
 }
 
 .negative {
@@ -16,22 +26,12 @@ img {
 	color: seashell;
 }
 
-.negative .mat-cell {
-	color: seashell;
-}
-
 .positive {
 	background-color: royalblue;
-}
-
-.positive .mat-cell {
 	color: seashell;
 }
 
 .low {
 	background-color: #e64a19;
-}
-
-.low .mat-cell {
 	color: seashell;
 }

@@ -24,10 +24,8 @@ export class SearchService {
     return this.http.get(this.API_URL + 'categories', { params });
   }
 
-  productSearch(longitude: any, latitude: any, categoryId: string, styleId: string, query: string): Observable<any> {
+  productSearch(categoryId: string, styleId: string, query: string, lng: any, lat: any): Observable<any> {
     let params = new HttpParams();
-    params = params.set('longitude', longitude);
-    params = params.set('latitude', latitude);
     if (categoryId != null) {
       params = params.set('categoryId', categoryId);
     }
@@ -37,14 +35,16 @@ export class SearchService {
     if (query !== null) {
       params = params.set('query', query);
     }
+    params = params.set('longitude', lng);
+    params = params.set('latitude', lat);
     return this.http.get(this.API_URL + 'search', { params });
   }
 
-  availability(sku: string, longitude: any, latitude: any) {
+  availability(sku: string, lng: any, lat: any) {
     let params = new HttpParams();
     params = params.set('sku', sku);
-    params = params.set('longitude', longitude);
-    params = params.set('latitude', latitude);
+    params = params.set('longitude', lng);
+    params = params.set('latitude', lat);
     return this.http.get(this.API_URL + 'availability', { params });
   }
 

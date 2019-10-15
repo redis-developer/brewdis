@@ -20,6 +20,8 @@ export class ProductSearchComponent implements OnInit {
   selectedStyleId = '';
   searchField: FormControl;
   results: Observable<any>;
+  lat = 34.0030;
+  lng = -118.4298;
 
   constructor(private searchService: SearchService) { }
 
@@ -29,16 +31,19 @@ export class ProductSearchComponent implements OnInit {
     this.styleField = new FormControl();
     this.searchField = new FormControl();
     this.searchService.categories().subscribe(data => this.categories = data);
-  }
-
-  search() {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          this.results = this.searchService.productSearch(position.coords.longitude, position.coords.latitude, this.selectedCategoryId, this.selectedStyleId, this.searchField.value);
-        });
+      navigator.geolocation.getCurrentPosition((position) => {
+        this.lat = position.coords.latitude;
+        this.lng = position.coords.longitude;
+      });
     } else {
       alert("Geolocation is not supported by this browser.");
     }
+
+  }
+
+  search() {
+    this.results = this.searchService.productSearch(this.selectedCategoryId, this.selectedStyleId, this.searchField.value, this.lng, this.lat);
   }
 
 }

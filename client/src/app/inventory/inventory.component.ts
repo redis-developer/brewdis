@@ -4,6 +4,8 @@ import { StompService, StompConfig } from '@stomp/ng2-stompjs';
 import { HttpClient } from '@angular/common/http';
 import { MatTable } from '@angular/material';
 import { SearchService } from '../search.service';
+import {MatSort} from '@angular/material/sort';
+import {MatTableDataSource} from '@angular/material/table';
 
 export interface InventoryData {
   store: string;
@@ -12,6 +14,7 @@ export interface InventoryData {
   id: string;
   name: string;
   quantity: number;
+  delta: number;
   time: string;
 }
 
@@ -24,18 +27,20 @@ export class InventoryComponent implements OnInit {
 
   API_URL = '/api/';
   @ViewChild(MatTable, { static: true }) table: MatTable<any>;
+  @ViewChild(MatSort, {static: true}) sort: MatSort;
 
   private stompService: StompService;
-  inventory: InventoryData[];
+  dataSource = new MatTableDataSource();
   store: string;
-  displayedColumns: string[] = ['store', 'label', 'name', 'quantity'];
+  displayedColumns: string[] = ['store', 'sku', 'name', 'quantity'];
 
   constructor(private http: HttpClient, private route: ActivatedRoute, private searchService: SearchService) { }
 
   ngOnInit() {
+    this.dataSource.sort = this.sort;
     this.store = this.route.snapshot.queryParamMap.get("store");
     console.log(this.store);
-    this.searchService.inventory(this.store).subscribe((inventory: InventoryData[]) => this.inventory = inventory);
+    this.searchService.inventory(this.store).subscribe((inventory: InventoryData[]) => this.dataSource.data = inventory);
     this.http.get(this.API_URL + 'config/stomp').subscribe((stomp: any) => this.connectStompService(stomp));
   }
 
@@ -57,14 +62,11 @@ export class InventoryComponent implements OnInit {
   }
 
   updateRowData(row_obj) {
-    this.inventory = this.inventory.filter((value, key) => {
+    this.dataSource.data = this.dataSource.data.filter((value: InventoryData, key) => {
       if (value.id == row_obj.id) {
-        if ('quantity' in row_obj) {
-          value.quantity = row_obj.quantity;
-        }
-        if ('time' in row_obj) {
-          value.time = row_obj.time;
-        }
+        value.quantity = row_obj.quantity;
+        value.time = row_obj.time;
+        value.delta = row_obj.delta;
       }
       return true;
     });
@@ -75,7 +77,7 @@ export class InventoryComponent implements OnInit {
     var updateTime = new Date(time);
     var currentTime = new Date();
     var duration = currentTime.valueOf() - updateTime.valueOf();
-    return duration<1000;
+    return duration < 1000;
   }
 
 }
