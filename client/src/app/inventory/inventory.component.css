@@ -22,7 +22,7 @@ table td p {
 }
 
 .negative {
-	background-color: indigo;
+	background-color: mediumslateblue;
 }
 
 .positive {
@@ -30,10 +30,10 @@ table td p {
 }
 
 .low {
-	background-color: #e64a19;
+	background-color: #941e1e;
 }
 
-.mid {
+.medium {
 	background-color: goldenrod;
 }
 
@@ -41,6 +41,10 @@ table td p {
 	background-color: green;
 }
 
-.mat-cell {
-	color: seashell;
+.numeric {
+	text-align: center;
+}
+
+.atp {
+	color: azure;
 }

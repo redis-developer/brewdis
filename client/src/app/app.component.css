@@ -1,19 +1,13 @@
+/* .mat-toolbar.mat-primary {
+  background-image: url('/assets/hops.png');
+} */
+
 mat-sidenav-container, mat-sidenav-content, mat-sidenav {
   height: 100%;
 }
 
 mat-sidenav {
   width: 250px;
-}
-
-a {
-  text-decoration: none;
-  color: white;
-}
-
-a:hover,
-a:active {
-  color: lightgray;
 }
 
 .navigation-items {
@@ -43,7 +37,7 @@ a:active {
 
 .logo {
   display: inline-block;
-  height: 30px;
+  height: 50px;
   margin: 0 auto;
   margin-right: 5px;
   text-align: center;

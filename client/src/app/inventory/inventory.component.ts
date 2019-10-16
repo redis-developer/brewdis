@@ -20,6 +20,7 @@ export interface InventoryData {
   virtualHold: number;
   delta: number;
   time: string;
+  level: string;
 }
 
 @Component({
@@ -35,16 +36,17 @@ export class InventoryComponent implements OnInit {
 
   private stompService: StompService;
   dataSource = new MatTableDataSource();
-  store: string;
   displayedColumns: string[] = ['store', 'sku', 'name', 'availableToPromise', 'onHand', 'allocated', 'reserved', 'virtualHold'];
 
   constructor(private http: HttpClient, private route: ActivatedRoute, private searchService: SearchService) { }
 
   ngOnInit() {
+    let store: string;
+    this.route.paramMap.subscribe(params => {
+      store = params.get('store');
+    });
     this.dataSource.sort = this.sort;
-    this.store = this.route.snapshot.queryParamMap.get("store");
-    console.log(this.store);
-    this.searchService.inventory(this.store).subscribe((inventory: InventoryData[]) => this.dataSource.data = inventory);
+    this.searchService.inventory(store).subscribe((inventory: InventoryData[]) => this.dataSource.data = inventory);
     this.http.get(this.API_URL + 'config/stomp').subscribe((stomp: any) => this.connectStompService(stomp));
   }
 
@@ -75,6 +77,7 @@ export class InventoryComponent implements OnInit {
         value.virtualHold = row_obj.virtualHold;
         value.time = row_obj.time;
         value.delta = row_obj.delta;
+        value.level = row_obj.level;
       }
       return true;
     });

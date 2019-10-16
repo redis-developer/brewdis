@@ -15,5 +15,6 @@ public class Field {
 	public final static String TIME = "time";
 	public final static String STORE_DESCRIPTION = "storeDescription";
 	public final static String EPOCH = "epoch";
+	public final static String LEVEL = "level";
 
 }

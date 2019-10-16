@@ -69,10 +69,12 @@ class RetailController {
 		SearchResults<String, String> results = connection.sync().search(config.getProduct().getIndex(), query,
 				SearchOptions.builder().limit(Limit.builder().num(config.getProduct().getSearchLimit()).build())
 						.build());
-		List<String> skus = results.stream().map(r -> r.get("sku")).collect(Collectors.toList());
 		List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
 				.stream().map(r -> r.get("store")).collect(Collectors.toList());
-		generator.generate(skus, stores);
+		List<String> skus = results.stream().map(r -> r.get("sku")).collect(Collectors.toList());
+		generator.request(
+				stores.subList(0, Math.min(config.getInventory().getGenerator().getMaxStores(), stores.size())),
+				skus.subList(0, Math.min(config.getInventory().getGenerator().getMaxSkus(), skus.size())));
 		return results;
 
 	}
@@ -113,12 +115,23 @@ class RetailController {
 	}
 
 	@GetMapping("/availability")
-	public SearchResults<String, String> availability(@RequestParam(name = "sku", required = true) String sku,
+	public SearchResults<String, String> availability(@RequestParam(name = "sku", required = false) String sku,
 			@RequestParam(name = "longitude", required = true) Double longitude,
 			@RequestParam(name = "latitude", required = true) Double latitude) {
-		String query = "@sku:{" + sku + "}";
-		query += " " + geoCriteria(longitude, latitude);
-		return connection.sync().search(config.getInventory().getIndex(), query);
+		String query = geoCriteria(longitude, latitude);
+		if (sku != null) {
+			query += " " + "@" + Field.SKU + ":{" + sku + "}";
+		}
+		return addInventoryLevels(connection.sync().search(config.getInventory().getIndex(), query,
+				SearchOptions.builder()
+						.limit(Limit.builder().num(config.getInventory().getGenerator().getMaxStores()).build())
+						.build()));
+	}
+
+	private SearchResults<String, String> addInventoryLevels(SearchResults<String, String> results) {
+		results.forEach(r -> r.put(Field.LEVEL,
+				config.getInventory().level(Integer.parseInt(r.get(Field.AVAILABLE_TO_PROMISE)))));
+		return results;
 	}
 
 	private String tag(String field, String value) {

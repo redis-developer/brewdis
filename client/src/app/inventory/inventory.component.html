@@ -20,16 +20,16 @@
 
 	<ng-container matColumnDef="availableToPromise">
 		<th class="cell-right" mat-header-cell *matHeaderCellDef mat-sort-header>Available To Promise</th>
-		<td mat-cell *matCellDef="let row" [ngClass]="{
-			'negative' : isRecent(row.time) && row.delta<0, 'positive' : isRecent(row.time) && row.delta>0
-		}" class="numeric">{{row.availableToPromise}}</td>
+		<td mat-cell *matCellDef="let row"
+			[ngClass]="{
+			'low' : row.level=='low', 'medium' : row.level=='medium', 'high' : row.level=='high'}"
+			class="numeric atp">{{row.availableToPromise}}</td>
 	</ng-container>
 
 	<ng-container matColumnDef="onHand">
 		<th mat-header-cell *matHeaderCellDef mat-sort-header>On Hand</th>
 		<td mat-cell *matCellDef="let row" class="numeric">{{row.onHand}}</td>
 	</ng-container>
-
 
 	<ng-container matColumnDef="allocated">
 		<th mat-header-cell *matHeaderCellDef mat-sort-header>Allocated</th>
@@ -47,8 +47,7 @@
 	</ng-container>
 
 	<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-	<tr mat-row *matRowDef="let row; columns: displayedColumns;"
-		[ngClass]="{ 'low' : row.availableToPromise<5, 'high' : row.availableToPromise>10, 'mid' : row.availableToPromise<=10 && row.availableToPromise>=5 }">
+	<tr mat-row *matRowDef="let row; columns: displayedColumns;">
 	</tr>
 
 </table>
