@@ -42,7 +42,9 @@ export class SearchService {
 
   availability(sku: string, lng: any, lat: any) {
     let params = new HttpParams();
-    params = params.set('sku', sku);
+    if (sku != null) {
+      params = params.set('sku', sku);
+    }
     params = params.set('longitude', lng);
     params = params.set('latitude', lat);
     return this.http.get(this.API_URL + 'availability', { params });

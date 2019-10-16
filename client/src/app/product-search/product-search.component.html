@@ -30,7 +30,7 @@
 			<span> {{ product['description'] }}</span>
 		</p>
 		<button mat-fab>
-			<a href="#/availability?sku={{ product.sku }}">
+			<a [routerLink]="['/availability', product.sku]">
 				<mat-icon>add_shopping_cart</mat-icon>
 			</a>
 		</button>

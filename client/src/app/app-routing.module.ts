@@ -8,7 +8,9 @@ const routes: Routes = [
   {path: '', pathMatch: 'full', redirectTo: 'search'},
   {path: 'search' , component: ProductSearchComponent},
   {path: 'inventory', component: InventoryComponent},
-  {path: 'availability', component: AvailabilityComponent}
+  {path: 'inventory/:store', component: InventoryComponent},
+  {path: 'availability', component: AvailabilityComponent},
+  {path: 'availability/:sku', component: AvailabilityComponent}
 ];
 
 @NgModule({

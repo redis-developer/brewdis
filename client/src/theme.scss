@@ -10,11 +10,11 @@
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
 // hue. Available color palettes: https://material.io/design/color/
 
-$brewdis-app-primary: mat-palette($mat-deep-orange);
+$brewdis-app-primary: mat-palette($mat-cyan, 900, 500, 100);
 $brewdis-app-accent:  mat-palette($mat-orange, A200, A100, A400);
 
 // The warn palette is optional (defaults to red).
-$brewdis-app-warn:    mat-palette($mat-red);
+$brewdis-app-warn:    mat-palette($mat-orange);
 
 // Create the theme object (a Sass map containing all of the palettes).
 $brewdis-app-theme: mat-light-theme($brewdis-app-primary, $brewdis-app-accent, $brewdis-app-warn);

@@ -14,14 +14,16 @@ export class AvailabilityComponent implements OnInit {
   lat = 34.0030;
   lng = -118.4298;
 
-  sku: string;
-
+  
   stores: [];
-
+  
   constructor(private searchService: SearchService, private route: ActivatedRoute) { }
-
+  
   ngOnInit() {
-    this.sku = this.route.snapshot.queryParamMap.get("sku");
+    let sku: string;
+    this.route.paramMap.subscribe(params => {
+      sku = params.get('sku');
+    });
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         this.lat = position.coords.latitude;
@@ -30,7 +32,7 @@ export class AvailabilityComponent implements OnInit {
     } else {
       alert("Geolocation is not supported by this browser.");
     }
-    this.searchService.availability(this.sku, this.lng, this.lat).subscribe((data: []) => this.stores = data);
+    this.searchService.availability(sku, this.lng, this.lat).subscribe((data: []) => this.stores = data);
   }
 
 }

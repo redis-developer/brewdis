@@ -1,3 +1,7 @@
 agm-map {
   height: 900px;
 }
+
+.marker-info {
+  color: black;
+}

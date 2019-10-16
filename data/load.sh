@@ -1,3 +1,4 @@
+redis-cli flushall
 echo "Creating stores index"
 redis-cli FT.CREATE stores SCHEMA \
 	store TAG SORTABLE \

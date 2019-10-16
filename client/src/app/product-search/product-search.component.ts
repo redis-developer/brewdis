@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { SearchService } from '../search.service';
 import { Observable } from 'rxjs';
-import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
-import { debounceTime } from 'rxjs/operators';
+import { FormControl } from '@angular/forms';
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-product-search',
@@ -23,11 +22,11 @@ export class ProductSearchComponent implements OnInit {
   lat = 34.0030;
   lng = -118.4298;
 
-  constructor(private searchService: SearchService) { }
+  constructor(private router: Router, private searchService: SearchService) { }
 
   ngOnInit() {
     this.categoryField = new FormControl();
-    this.categoryField.valueChanges.subscribe((category: any)  => this.searchService.styles(this.selectedCategoryId).subscribe(data => this.styles = data));
+    this.categoryField.valueChanges.subscribe((category: any) => this.searchService.styles(this.selectedCategoryId).subscribe(data => this.styles = data));
     this.styleField = new FormControl();
     this.searchField = new FormControl();
     this.searchService.categories().subscribe(data => this.categories = data);
@@ -45,5 +44,4 @@ export class ProductSearchComponent implements OnInit {
   search() {
     this.results = this.searchService.productSearch(this.selectedCategoryId, this.selectedStyleId, this.searchField.value, this.lng, this.lat);
   }
-
 }
