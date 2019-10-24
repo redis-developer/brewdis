@@ -1,10 +1,10 @@
 package com.redislabs.demos.retail;
 
 import java.time.Duration;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -21,12 +21,13 @@ public class InventoryCleanup {
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired
-	private RetailConfig config;
+	private StringRedisTemplate redis;
+	@Autowired
+	private BrewdisConfig config;
 
-	@Scheduled(fixedRate = 60000)
+	@Scheduled(fixedRateString = "${brewdis.inventory.cleanup.rate}")
 	public void run() {
-		log.info("Cleaning up inventory");
-		ZonedDateTime time = ZonedDateTime.now(ZoneOffset.UTC)
+		ZonedDateTime time = ZonedDateTime.now()
 				.minus(Duration.ofSeconds(config.getInventory().getCleanup().getAgeThreshold()));
 		String query = "@epoch:[0 " + time.toEpochSecond() + "]";
 		SearchResults<String, String> results = connection.sync().search(config.getInventory().getIndex(), query,
@@ -37,5 +38,7 @@ public class InventoryCleanup {
 		if (results.size() > 0) {
 			log.info("Deleted {} docs from {} index", results.size(), config.getInventory().getIndex());
 		}
+		redis.opsForStream().trim(config.getInventory().getInputStream(),
+				config.getInventory().getCleanup().getStreamTrimCount());
 	}
 }

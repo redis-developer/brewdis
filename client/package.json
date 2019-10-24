@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --output-hashing=all",
+    "build": "ng build --output-hashing=all --output-path ui-src/META-INF/resources",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -26,6 +26,7 @@
     "@angular/router": "~8.2.9",
     "@stomp/ng2-stompjs": "^7.2.0",
     "@types/googlemaps": "^3.37.7",
+    "hammerjs": "^2.0.8",
     "rxjs": "~6.4.0",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1"

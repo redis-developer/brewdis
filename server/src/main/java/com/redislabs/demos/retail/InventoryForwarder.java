@@ -20,7 +20,7 @@ public class InventoryForwarder
 		implements InitializingBean, DisposableBean, StreamListener<String, MapRecord<String, String, String>> {
 
 	@Autowired
-	private RetailConfig config;
+	private BrewdisConfig config;
 	@Autowired
 	private StringRedisTemplate template;
 	@Autowired

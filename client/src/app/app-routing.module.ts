@@ -5,8 +5,8 @@ import { InventoryComponent } from './inventory/inventory.component';
 import { AvailabilityComponent } from './availability/availability.component';
 
 const routes: Routes = [
-  {path: '', pathMatch: 'full', redirectTo: 'search'},
-  {path: 'search' , component: ProductSearchComponent},
+  {path: '', pathMatch: 'full', redirectTo: 'products'},
+  {path: 'products' , component: ProductSearchComponent},
   {path: 'inventory', component: InventoryComponent},
   {path: 'inventory/:store', component: InventoryComponent},
   {path: 'availability', component: AvailabilityComponent},

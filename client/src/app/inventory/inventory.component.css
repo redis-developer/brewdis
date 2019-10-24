@@ -21,24 +21,25 @@ table td p {
 	vertical-align: middle
 }
 
-.negative {
-	background-color: mediumslateblue;
-}
-
-.positive {
-	background-color: royalblue;
-}
+.mat-sort-header-container {
+	align-items: center;
+  }
 
 .low {
-	background-color: #941e1e;
+	background-color: #d32f2f;
 }
 
 .medium {
-	background-color: goldenrod;
+	background-color: #f9a825;
 }
 
 .high {
-	background-color: green;
+	background-color: #388e3c;
+}
+
+.recent {
+	/* border: 5px solid #fdd835; */
+	background-color: papayawhip;
 }
 
 .numeric {

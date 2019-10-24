@@ -2,6 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface Query {
+  query: string;
+  sortByField: string;
+  sortByDirection: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -11,33 +17,20 @@ export class SearchService {
 
   constructor(private http: HttpClient) { }
 
-  styles(categoryId: string): Observable<any> {
+  styles(category: string): Observable<any> {
     let params = new HttpParams();
-    if (categoryId != null) {
-      params = params.set('categoryId', categoryId);
+    if (category != null) {
+      params = params.set('category', category);
     }
     return this.http.get(this.API_URL + 'styles', { params });
   }
 
   categories(): Observable<any> {
-    let params = new HttpParams();
-    return this.http.get(this.API_URL + 'categories', { params });
+    return this.http.get(this.API_URL + 'categories');
   }
 
-  productSearch(categoryId: string, styleId: string, query: string, lng: any, lat: any): Observable<any> {
-    let params = new HttpParams();
-    if (categoryId != null) {
-      params = params.set('categoryId', categoryId);
-    }
-    if (styleId != null) {
-      params = params.set('styleId', styleId);
-    }
-    if (query !== null) {
-      params = params.set('query', query);
-    }
-    params = params.set('longitude', lng);
-    params = params.set('latitude', lat);
-    return this.http.get(this.API_URL + 'search', { params });
+  products(query: Query): Observable<any> {
+    return this.http.post(this.API_URL + 'products', query);
   }
 
   availability(sku: string, lng: any, lat: any) {
@@ -56,6 +49,24 @@ export class SearchService {
       params = params.set('store', store);
     }
     return this.http.get(this.API_URL + 'inventory', { params });
+  }
+
+  addProduct(sku: string, lng: any, lat: any) {
+    let params = new HttpParams();
+    if (sku != null) {
+      params = params.set('sku', sku);
+    }
+    params = params.set('longitude', lng);
+    params = params.set('latitude', lat);
+    this.http.get(this.API_URL + 'cart', { params }).subscribe();
+  }
+
+  suggestBreweries(prefix: string): Observable<any> {
+    let params = new HttpParams();
+    if (prefix != null) {
+      params = params.set('prefix', prefix);
+    }
+    return this.http.get(this.API_URL + 'breweries/suggest', { params });
   }
 
 }

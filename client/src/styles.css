@@ -5,13 +5,3 @@
 body {
   margin: 0;
 }
-
-a {
-  text-decoration: none;
-  color: azure;
-}
-
-a:hover,
-a:active {
-  color: azure;
-}

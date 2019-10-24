@@ -1,10 +1,12 @@
 package com.redislabs.demos.retail;
 
-import static com.redislabs.demos.retail.Field.DELTA;
+import static com.redislabs.demos.retail.Field.ON_HAND;
 import static com.redislabs.demos.retail.Field.SKU;
 import static com.redislabs.demos.retail.Field.STORE;
 
 import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Random;
@@ -34,20 +36,21 @@ public class InventoryRestocker
 	@Autowired
 	private StringRedisTemplate template;
 	@Autowired
-	private RetailConfig config;
+	private BrewdisConfig config;
 	private ScheduledExecutorService executor;
 
 	private OfInt delays;
 	private Subscription subscription;
-	private OfInt deltas;
+	private OfInt onHands;
 	private StreamMessageListenerContainer<String, MapRecord<String, String, String>> container;
+	private Map<String, ZonedDateTime> scheduledRestocks = new HashMap<>();
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		Random random = new Random();
 		this.delays = random.ints(config.getInventory().getRestock().getDelayMin(),
 				config.getInventory().getRestock().getDelayMax()).iterator();
-		this.deltas = random.ints(config.getInventory().getRestock().getDeltaMin(),
+		this.onHands = random.ints(config.getInventory().getRestock().getDeltaMin(),
 				config.getInventory().getRestock().getDeltaMax()).iterator();
 		this.container = StreamMessageListenerContainer.create(template.getConnectionFactory(),
 				StreamMessageListenerContainerOptions.builder().pollTimeout(Duration.ofMillis(10000)).build());
@@ -76,15 +79,21 @@ public class InventoryRestocker
 		String sku = message.getValue().get(SKU);
 		int available = Integer.parseInt(message.getValue().get(Field.AVAILABLE_TO_PROMISE));
 		if (available < config.getInventory().getRestock().getThreshold()) {
+			String id = store + ":" + sku;
+			if (scheduledRestocks.containsKey(id)) {
+				return;
+			}
+			scheduledRestocks.put(id, ZonedDateTime.now());
 			int delay = delays.nextInt();
-			log.info("Scheduled restocking {}:{} in {} seconds", store, sku, delay);
+			log.info("Scheduling restocking for {}:{} in {} seconds", store, sku, delay);
 			executor.schedule(new Runnable() {
 
 				@Override
 				public void run() {
-					int delta = deltas.nextInt();
+					int delta = onHands.nextInt();
 					template.opsForStream().add(config.getInventory().getInputStream(),
-							Map.of(STORE, store, SKU, sku, DELTA, String.valueOf(delta)));
+							Map.of(STORE, store, SKU, sku, ON_HAND, String.valueOf(delta)));
+					scheduledRestocks.remove(id);
 				}
 			}, delay, TimeUnit.SECONDS);
 		}

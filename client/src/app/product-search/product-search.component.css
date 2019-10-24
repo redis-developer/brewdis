@@ -1,36 +1,51 @@
 .search-form {
-	display: flex;
-	margin: 5px;
-	align-items: center;
+	margin: 10px;
 }
 
-.category-field {
-	flex: 18%;
-	margin: 1%;
+.submit {
+	height: 3em;
 }
 
-.style-field {
-	flex: 18%;
-	margin: 1%;
+.brewery-img {
+	vertical-align: middle;
+	margin-right: 8px;
 }
 
-.search-field {
-	flex: 30%;
-	margin: 1%;
+mat-card {
+	width: calc(100% - 40px);
+	height: calc(100% - 40px);
 }
 
-.abv {
-	font-style: italic;
+::ng-deep .mat-card-header-text {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
 }
 
-.result {
-	height: 120px !important;
-	text-decoration: none;
-	border-top: 1px solid #ddd;
+mat-card-content {
+	overflow-y: auto;
+	height: 240px;
+	margin-bottom: 100px;
 }
 
-.result-label {
-	width: 100px !important;
-	height: 100px !important;
-	border-radius: unset !important;
+.product-name {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.product-label {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.button-overlay {
+	display: inline-block;
+	position: absolute;
+	right: 10px;
+	top: 35px;
+}
+
+.add-button {
+	margin-right: 5px;
 }

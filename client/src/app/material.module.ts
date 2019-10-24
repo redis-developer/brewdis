@@ -15,6 +15,6 @@ import {
   exports: [MatSidenavModule,
     MatToolbarModule,
     MatIconModule,
-    MatListModule,]
+    MatListModule]
 })
 export class MaterialModule { }

@@ -2,8 +2,10 @@
 
 # compiled output
 /dist
+/bin
 /tmp
 /out-tsc
+/ui-src
 # Only exists if Bazel was run
 /bazel-out
 
@@ -30,6 +32,7 @@ speed-measure-plugin*.json
 !.vscode/launch.json
 !.vscode/extensions.json
 .history/*
+brewdis.code-workspace
 
 # misc
 /.sass-cache

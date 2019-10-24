@@ -2,3 +2,4 @@
 /.settings/
 /.project
 *.log
+/data/products.json.gz

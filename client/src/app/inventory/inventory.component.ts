@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute } from '@angular/router';
 import { StompService, StompConfig } from '@stomp/ng2-stompjs';
 import { HttpClient } from '@angular/common/http';
 import { MatTable } from '@angular/material';
@@ -10,9 +10,8 @@ import {MatTableDataSource} from '@angular/material/table';
 export interface InventoryData {
   store: string;
   sku: string;
-  description: string;
-  id: string;
-  name: string;
+  storeDescription: string;
+  productName: string;
   availableToPromise: number;
   onHand: number;
   allocated: number;
@@ -67,27 +66,25 @@ export class InventoryComponent implements OnInit {
     this.stompService.subscribe(config.inventoryTopic).subscribe(update => this.updateRowData(JSON.parse(update.body)));
   }
 
-  updateRowData(row_obj) {
+  updateRowData(row) {
     this.dataSource.data = this.dataSource.data.filter((value: InventoryData, key) => {
-      if (value.id == row_obj.id) {
-        value.availableToPromise = row_obj.availableToPromise;
-        value.onHand = row_obj.onHand;
-        value.allocated = row_obj.allocated;
-        value.reserved = row_obj.reserved;
-        value.virtualHold = row_obj.virtualHold;
-        value.time = row_obj.time;
-        value.delta = row_obj.delta;
-        value.level = row_obj.level;
+      if (value.store === row.store && value.sku === row.sku) {
+        value.availableToPromise = row.availableToPromise;
+        value.onHand = row.onHand;
+        value.allocated = row.allocated;
+        value.reserved = row.reserved;
+        value.virtualHold = row.virtualHold;
+        value.time = row.time;
+        value.delta = row.delta;
+        value.level = row.level;
       }
       return true;
     });
     this.table.renderRows();
   }
 
-  isRecent(time: string) {
-    var updateTime = new Date(time);
-    var currentTime = new Date();
-    var duration = currentTime.valueOf() - updateTime.valueOf();
+  isRecent(row: InventoryData) {
+    const duration = new Date().valueOf() - new Date(row.time).valueOf();
     return duration < 1000;
   }
 

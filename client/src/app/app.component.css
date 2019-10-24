@@ -1,45 +1,29 @@
-/* .mat-toolbar.mat-primary {
-  background-image: url('/assets/hops.png');
-} */
-
-mat-sidenav-container, mat-sidenav-content, mat-sidenav {
-  height: 100%;
+.menu-spacer {
+    flex: 1 1 auto;
 }
 
-mat-sidenav {
-  width: 250px;
-}
-
-.navigation-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-}
-
-.icon {
-  display: inline-block;
-  height: 30px;
-  margin: 0 auto;
-  margin-right: 5px;
-  padding-right: 5px;
-  text-align: center;
-  vertical-align: middle;
-  width: 15%;
-}
-
-.label {
-  display: inline-block;
-  line-height: 30px;
-  margin: 0;
-  width: 85%;
+.main {
+    height: 3em;
 }
 
 .logo {
-  display: inline-block;
-  height: 50px;
-  margin: 0 auto;
-  margin-right: 5px;
-  text-align: center;
-  vertical-align: middle;
+    height: 100%;
+    margin-right: 5px;
+}
+
+.home {
+    font-size: 2em;
+}
+
+.redislabs {
+    height: 3em;
+}
+
+.link {
+    font-size: 1em;
+}
+
+mat-toolbar-row {
+    margin-top: 3px;
+    margin-bottom: 3px;
 }

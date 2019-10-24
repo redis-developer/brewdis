@@ -12,7 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Autowired
-	private RetailConfig config;
+	private BrewdisConfig config;
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {

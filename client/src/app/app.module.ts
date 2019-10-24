@@ -7,11 +7,16 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ProductSearchComponent } from './product-search/product-search.component';
-
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
-import { MatButtonModule, MatIconModule, MatCardModule, MatInputModule, MatAutocompleteModule, MatListModule, MatGridListModule, MatToolbarModule, MatSelectModule, MatTableModule, MatSortModule } from '@angular/material';
+import {
+  MatButtonModule, MatIconModule, MatCardModule,
+  MatInputModule, MatAutocompleteModule, MatListModule,
+  MatGridListModule, MatToolbarModule, MatSelectModule,
+  MatTableModule, MatSortModule, MatButtonToggleModule
+} from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { InventoryComponent } from './inventory/inventory.component';
 import { AvailabilityComponent } from './availability/availability.component';
 import { MaterialModule } from './material.module';
@@ -29,6 +34,7 @@ import { MaterialModule } from './material.module';
       apiKey: 'AIzaSyCn5UCrMs-Lh6R_kBDkGxnw9GzTME273cQ'
     }),
     BrowserAnimationsModule,
+    MatTooltipModule,
     MaterialModule,
     AppRoutingModule,
     HttpClientModule,
@@ -45,9 +51,10 @@ import { MaterialModule } from './material.module';
     MatToolbarModule,
     MatSelectModule,
     MatTableModule,
-    MatSortModule
+    MatSortModule,
+    MatButtonToggleModule
   ],
-  providers: [{provide: LocationStrategy, useClass: HashLocationStrategy}],
+  providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
