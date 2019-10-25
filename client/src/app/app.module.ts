@@ -6,8 +6,9 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ProductSearchComponent } from './product-search/product-search.component';
+import { CatalogComponent } from './catalog/catalog.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {MatDialogModule} from '@angular/material/dialog';
 
 import {
   MatButtonModule, MatIconModule, MatCardModule,
@@ -24,7 +25,7 @@ import { MaterialModule } from './material.module';
 @NgModule({
   declarations: [
     AppComponent,
-    ProductSearchComponent,
+    CatalogComponent,
     InventoryComponent,
     AvailabilityComponent
   ],
@@ -52,7 +53,8 @@ import { MaterialModule } from './material.module';
     MatSelectModule,
     MatTableModule,
     MatSortModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatDialogModule
   ],
   providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
   bootstrap: [AppComponent]

@@ -1,8 +1,8 @@
 package com.redislabs.demos.retail;
 
 import static com.redislabs.demos.retail.Field.ON_HAND;
-import static com.redislabs.demos.retail.Field.SKU;
-import static com.redislabs.demos.retail.Field.STORE;
+import static com.redislabs.demos.retail.Field.PRODUCT_ID;
+import static com.redislabs.demos.retail.Field.STORE_ID;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -75,11 +75,11 @@ public class InventoryRestocker
 
 	@Override
 	public void onMessage(MapRecord<String, String, String> message) {
-		String store = message.getValue().get(STORE);
-		String sku = message.getValue().get(SKU);
+		String store = message.getValue().get(STORE_ID);
+		String sku = message.getValue().get(PRODUCT_ID);
 		int available = Integer.parseInt(message.getValue().get(Field.AVAILABLE_TO_PROMISE));
 		if (available < config.getInventory().getRestock().getThreshold()) {
-			String id = store + ":" + sku;
+			String id = config.concat(store, sku);
 			if (scheduledRestocks.containsKey(id)) {
 				return;
 			}
@@ -92,7 +92,7 @@ public class InventoryRestocker
 				public void run() {
 					int delta = onHands.nextInt();
 					template.opsForStream().add(config.getInventory().getInputStream(),
-							Map.of(STORE, store, SKU, sku, ON_HAND, String.valueOf(delta)));
+							Map.of(STORE_ID, store, PRODUCT_ID, sku, ON_HAND, String.valueOf(delta)));
 					scheduledRestocks.remove(id);
 				}
 			}, delay, TimeUnit.SECONDS);

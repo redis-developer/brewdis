@@ -1,7 +1,14 @@
 package com.redislabs.demos.retail;
 
+import static com.redislabs.demos.retail.Field.ADDED;
+import static com.redislabs.demos.retail.Field.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demos.retail.Field.LEVEL;
+import static com.redislabs.demos.retail.Field.LOCATION;
+import static com.redislabs.demos.retail.Field.PRODUCT_DESCRIPTION;
+import static com.redislabs.demos.retail.Field.PRODUCT_ID;
+import static com.redislabs.demos.retail.Field.STORE_ID;
+
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,15 +29,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redislabs.demos.retail.BrewdisConfig.StompConfig;
 import com.redislabs.demos.retail.BrewdisController.BrewerySuggestion.BrewerySuggestionBuilder;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
-import com.redislabs.lettusearch.aggregate.AggregateOptions;
-import com.redislabs.lettusearch.aggregate.AggregateResults;
-import com.redislabs.lettusearch.aggregate.Group;
-import com.redislabs.lettusearch.aggregate.reducer.CountDistinct;
 import com.redislabs.lettusearch.search.Direction;
 import com.redislabs.lettusearch.search.HighlightOptions;
 import com.redislabs.lettusearch.search.HighlightOptions.TagOptions;
@@ -60,6 +62,8 @@ class BrewdisController {
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired
 	private InventoryGenerator generator;
+	@Autowired
+	private ReferenceData data;
 	private ObjectMapper mapper = new ObjectMapper();
 
 	@GetMapping("/config/stomp")
@@ -78,7 +82,7 @@ class BrewdisController {
 	@PostMapping("/products")
 	public SearchResults<String, String> products(@RequestBody Query query, HttpSession session) {
 		SearchOptionsBuilder options = SearchOptions.builder()
-				.highlight(HighlightOptions.builder().field("description")
+				.highlight(HighlightOptions.builder().field(PRODUCT_DESCRIPTION)
 						.tags(TagOptions.builder().open("<mark>").close("</mark>").build()).build())
 				.limit(Limit.builder().num(query.getLimit()).build());
 		if (query.getSortByField() != null) {
@@ -91,7 +95,7 @@ class BrewdisController {
 		@SuppressWarnings("unchecked")
 		Set<String> cart = (Set<String>) session.getAttribute(config.getSession().getCartAttribute());
 		if (cart != null) {
-			results.forEach(r -> r.put(Field.ADDED, String.valueOf(cart.contains(r.get(Field.SKU)))));
+			results.forEach(r -> r.put(ADDED, String.valueOf(cart.contains(r.get(PRODUCT_ID)))));
 		}
 		return results;
 	}
@@ -106,16 +110,8 @@ class BrewdisController {
 	}
 
 	@GetMapping("/styles")
-	public Stream<Style> styles(@RequestParam(name = "category", defaultValue = "", required = false) String category) {
-		AggregateResults<String, String> results = connection.sync()
-				.aggregate("products", tag("category", category),
-						AggregateOptions.builder()
-								.operation(Group.builder().property("style").property("styleName")
-										.reduce(CountDistinct.builder().property("sku").as("count").build()).build())
-								.build());
-		return results.stream().map(r -> Style.builder().id(r.get("style")).name(r.get("styleName")).build())
-				.sorted(Comparator.comparing(Style::getName, Comparator.nullsLast(Comparator.reverseOrder())));
-
+	public List<Style> styles(@RequestParam(name = "category", defaultValue = "", required = false) String category) {
+		return data.getStyles().get(category);
 	}
 
 	@Data
@@ -128,22 +124,15 @@ class BrewdisController {
 	}
 
 	@GetMapping("/categories")
-	public Stream<Category> categories() {
-		AggregateResults<String, String> results = connection.sync()
-				.aggregate("products", "*",
-						AggregateOptions.builder()
-								.operation(Group.builder().property("category").property("categoryName")
-										.reduce(CountDistinct.builder().property("sku").as("count").build()).build())
-								.build());
-		return results.stream().map(r -> Category.builder().id(r.get("category")).name(r.get("categoryName")).build())
-				.sorted(Comparator.comparing(Category::getName, Comparator.nullsLast(Comparator.naturalOrder())));
+	public List<Category> categories() {
+		return data.getCategories();
 	}
 
 	@GetMapping("/inventory")
 	public SearchResults<String, String> inventory(@RequestParam(name = "store", required = false) String store) {
-		String query = store == null ? "*" : "@store:{" + store + "}";
+		String query = store == null ? "*" : data.tag(STORE_ID, store);
 		return connection.sync().search(config.getInventory().getIndex(), query,
-				SearchOptions.builder().sortBy(SortBy.builder().field(Field.STORE).field(Field.SKU).build())
+				SearchOptions.builder().sortBy(SortBy.builder().field(STORE_ID).field(PRODUCT_ID).build())
 						.limit(Limit.builder().num(config.getInventory().getSearchLimit()).build()).build());
 	}
 
@@ -163,26 +152,22 @@ class BrewdisController {
 			skus.add(sku);
 		}
 		if (!skus.isEmpty()) {
-			query += " " + skuTagCriteria(skus);
+			query += " " + data.tag(PRODUCT_ID, String.join("|", skus));
 		}
 		SearchResults<String, String> results = connection.sync().search(config.getInventory().getIndex(), query,
 				SearchOptions.builder()
 						.limit(Limit.builder().num(config.getInventory().getGenerator().getMaxStores()).build())
 						.build());
 		results.forEach(r -> {
-			String atpString = r.get(Field.AVAILABLE_TO_PROMISE);
+			String atpString = r.get(AVAILABLE_TO_PROMISE);
 			if (atpString == null) {
 				return;
 			}
 			int availableToPromise = Integer.parseInt(atpString);
-			r.put(Field.LEVEL, config.getInventory().level(availableToPromise));
+			r.put(LEVEL, config.getInventory().level(availableToPromise));
 		});
 		return results;
 
-	}
-
-	private String skuTagCriteria(List<String> skus) {
-		return "@" + Field.SKU + ":{" + String.join(" | ", skus) + "}";
 	}
 
 	@GetMapping("/cart")
@@ -202,20 +187,15 @@ class BrewdisController {
 			session.setAttribute(config.getSession().getCoordsAttribute(), coords);
 		}
 		List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
-				.stream().map(r -> r.get("store")).collect(Collectors.toList());
+				.stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
 		generator.add(stores.subList(0, Math.min(config.getInventory().getGenerator().getMaxStores(), stores.size())),
 				sku);
 		return new ResponseEntity<>(HttpStatus.OK);
 
 	}
 
-	private String tag(String field, String value) {
-		String escapedField = field.replace(".", "\\.");
-		return "@" + escapedField + ":{'" + value + "'}";
-	}
-
 	private String geoCriteria(Double longitude, Double latitude) {
-		return "@location:[" + longitude + " " + latitude + " " + config.getAvailabilityRadius() + "]";
+		return "@" + LOCATION + ":[" + longitude + " " + latitude + " " + config.getAvailabilityRadius() + "]";
 	}
 
 	@Data
@@ -236,30 +216,6 @@ class BrewdisController {
 	@GetMapping("/breweries/suggest")
 	public Stream<BrewerySuggestion> suggestBreweries(
 			@RequestParam(name = "prefix", defaultValue = "", required = false) String prefix) {
-		if (connection.sync().suglen(config.getProduct().getBrewerySuggestionIndex()) == 0) {
-			AggregateResults<String, String> results = connection.sync().aggregate("products", "*",
-					AggregateOptions.builder().load("breweryIcon")
-							.operation(Group.builder().property("brewery").property("breweryName")
-									.property("breweryIcon")
-									.reduce(CountDistinct.builder().property("sku").as("count").build()).build())
-							.build());
-			results.forEach(r -> {
-				BrewerySuggestionPayload payloadObject = BrewerySuggestionPayload.builder().id(r.get("brewery"))
-						.icon(r.get("breweryIcon")).build();
-				String payload = null;
-				try {
-					payload = mapper.writeValueAsString(payloadObject);
-				} catch (JsonProcessingException e) {
-					log.error("Could not serialize brewery payload {}", payloadObject, e);
-				}
-				String breweryName = r.get("breweryName");
-				if (breweryName == null) {
-					return;
-				}
-				double count = Double.parseDouble(r.get("count"));
-				connection.sync().sugadd(config.getProduct().getBrewerySuggestionIndex(), breweryName, count, payload);
-			});
-		}
 		List<SuggestResult<String>> results = connection.sync().sugget(config.getProduct().getBrewerySuggestionIndex(),
 				prefix, SuggestGetOptions.builder().withPayloads(true).max(20l)
 						.fuzzy(config.getProduct().isBrewerySuggestIndexFuzzy()).build());

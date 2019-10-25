@@ -1,0 +1,61 @@
+.search-form {
+	margin: 10px;
+}
+
+.submit {
+	height: 3em;
+}
+
+.brewery-img {
+	vertical-align: middle;
+	margin-right: 8px;
+}
+
+mat-card {
+	width: calc(100% - 40px);
+	height: calc(100% - 40px);
+}
+
+::ng-deep .mat-card-header-text {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.product-name {
+	font-size: 1em;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.mat-card-subtitle {
+	margin-bottom: 0px;
+}
+
+.product-label {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.product-detail {
+	position: relative;
+	display: inline-block;
+	min-width: 64px;
+	padding: 0 16px;
+}
+
+.button-overlay {
+	display: inline-block;
+	position: absolute;
+	right: 10px;
+	top: 35px;
+}
+
+.description-button {
+	margin-right: 5px;
+}
+
+.add-button {
+	margin-right: 5px;
+}

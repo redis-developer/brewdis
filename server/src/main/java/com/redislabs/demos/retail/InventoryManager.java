@@ -7,8 +7,8 @@ import static com.redislabs.demos.retail.Field.EPOCH;
 import static com.redislabs.demos.retail.Field.LEVEL;
 import static com.redislabs.demos.retail.Field.ON_HAND;
 import static com.redislabs.demos.retail.Field.RESERVED;
-import static com.redislabs.demos.retail.Field.SKU;
-import static com.redislabs.demos.retail.Field.STORE;
+import static com.redislabs.demos.retail.Field.PRODUCT_ID;
+import static com.redislabs.demos.retail.Field.STORE_ID;
 import static com.redislabs.demos.retail.Field.TIME;
 import static com.redislabs.demos.retail.Field.VIRTUAL_HOLD;
 
@@ -72,10 +72,10 @@ public class InventoryManager
 
 	@Override
 	public void onMessage(MapRecord<String, String, String> message) {
-		String store = message.getValue().get(STORE);
-		String sku = message.getValue().get(SKU);
-		String id = config.key(store, sku);
-		String docId = config.key(config.getInventory().getKeyspace(), id);
+		String store = message.getValue().get(STORE_ID);
+		String sku = message.getValue().get(PRODUCT_ID);
+		String id = config.concat(store, sku);
+		String docId = config.concat(config.getInventory().getKeyspace(), id);
 		Map<String, String> inventory = connection.sync().get(config.getInventory().getIndex(), docId);
 		if (message.getValue().containsKey(ON_HAND)) {
 			int delta = Integer.parseInt(message.getValue().get(ON_HAND));

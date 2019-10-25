@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { ProductSearchComponent } from './product-search/product-search.component';
+import { CatalogComponent } from './catalog/catalog.component';
 import { InventoryComponent } from './inventory/inventory.component';
 import { AvailabilityComponent } from './availability/availability.component';
 
 const routes: Routes = [
-  {path: '', pathMatch: 'full', redirectTo: 'products'},
-  {path: 'products' , component: ProductSearchComponent},
+  {path: '', pathMatch: 'full', redirectTo: 'catalog'},
+  {path: 'catalog' , component: CatalogComponent},
   {path: 'inventory', component: InventoryComponent},
   {path: 'inventory/:store', component: InventoryComponent},
   {path: 'availability', component: AvailabilityComponent},

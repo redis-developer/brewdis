@@ -3,8 +3,8 @@ package com.redislabs.demos.retail;
 import static com.redislabs.demos.retail.Field.ALLOCATED;
 import static com.redislabs.demos.retail.Field.ON_HAND;
 import static com.redislabs.demos.retail.Field.RESERVED;
-import static com.redislabs.demos.retail.Field.SKU;
-import static com.redislabs.demos.retail.Field.STORE;
+import static com.redislabs.demos.retail.Field.PRODUCT_ID;
+import static com.redislabs.demos.retail.Field.STORE_ID;
 import static com.redislabs.demos.retail.Field.VIRTUAL_HOLD;
 
 import java.util.HashMap;
@@ -70,18 +70,18 @@ public class InventoryGenerator implements InitializingBean {
 		String store = stores.toArray(new String[stores.size()])[random.nextInt(stores.size())];
 		String sku = skus.toArray(new String[skus.size()])[random.nextInt(skus.size())];
 		template.opsForStream().add(config.getInventory().getInputStream(),
-				Map.of(STORE, store, SKU, sku, ALLOCATED, String.valueOf(allocated.nextInt())));
+				Map.of(STORE_ID, store, PRODUCT_ID, sku, ALLOCATED, String.valueOf(allocated.nextInt())));
 	}
 
 	public void add(List<String> stores, String sku) {
 		log.info("Adding stores {} and sku {}", stores, sku);
 		for (String store : stores) {
-			String productDocId = config.key(config.getProduct().getKeyspace(), sku);
+			String productDocId = config.concat(config.getProduct().getKeyspace(), sku);
 			Map<String, String> productDoc = connection.sync().get(config.getProduct().getIndex(), productDocId);
 			if (productDoc == null) {
 				log.warn("Unknown product {}", productDocId);
 			}
-			String storeDocId = config.key(config.getStore().getKeyspace(), store);
+			String storeDocId = config.concat(config.getStore().getKeyspace(), store);
 			Map<String, String> storeDoc = connection.sync().get(config.getStore().getIndex(), storeDocId);
 			if (storeDoc == null) {
 				log.warn("Unknown store {}", storeDocId);
@@ -93,7 +93,7 @@ public class InventoryGenerator implements InitializingBean {
 			inventory.put(ALLOCATED, String.valueOf(allocateds.nextInt()));
 			inventory.put(RESERVED, String.valueOf(reserveds.nextInt()));
 			inventory.put(VIRTUAL_HOLD, String.valueOf(virtualHolds.nextInt()));
-			String docId = config.key(config.getInventory().getKeyspace(), store, sku);
+			String docId = config.concat(config.getInventory().getKeyspace(), store, sku);
 			connection.sync().add(config.getInventory().getIndex(), docId, 1.0, inventory, addOptions);
 		}
 		this.stores.addAll(stores);

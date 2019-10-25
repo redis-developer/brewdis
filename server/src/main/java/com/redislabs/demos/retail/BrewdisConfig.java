@@ -118,7 +118,7 @@ public class BrewdisConfig {
 		private String inventoryTopic;
 	}
 
-	public String key(String... keys) {
+	public String concat(String... keys) {
 		return String.join(keySeparator, keys);
 	}
 

@@ -3,3 +3,5 @@
 /.project
 *.log
 /data/products.json.gz
+/data/products.json
+/data/brewerydb/all/
