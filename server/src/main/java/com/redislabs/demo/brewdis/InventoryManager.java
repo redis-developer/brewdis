@@ -1,16 +1,16 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demos.retail.Field.ALLOCATED;
-import static com.redislabs.demos.retail.Field.AVAILABLE_TO_PROMISE;
-import static com.redislabs.demos.retail.Field.DELTA;
-import static com.redislabs.demos.retail.Field.EPOCH;
-import static com.redislabs.demos.retail.Field.LEVEL;
-import static com.redislabs.demos.retail.Field.ON_HAND;
-import static com.redislabs.demos.retail.Field.RESERVED;
-import static com.redislabs.demos.retail.Field.PRODUCT_ID;
-import static com.redislabs.demos.retail.Field.STORE_ID;
-import static com.redislabs.demos.retail.Field.TIME;
-import static com.redislabs.demos.retail.Field.VIRTUAL_HOLD;
+import static com.redislabs.demo.brewdis.Field.ALLOCATED;
+import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demo.brewdis.Field.DELTA;
+import static com.redislabs.demo.brewdis.Field.EPOCH;
+import static com.redislabs.demo.brewdis.Field.LEVEL;
+import static com.redislabs.demo.brewdis.Field.ON_HAND;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.Field.RESERVED;
+import static com.redislabs.demo.brewdis.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.Field.TIME;
+import static com.redislabs.demo.brewdis.Field.VIRTUAL_HOLD;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -27,10 +27,19 @@ import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
 import org.springframework.data.redis.stream.Subscription;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.AddOptions;
+import com.redislabs.lettusearch.search.DropOptions;
+import com.redislabs.lettusearch.search.Limit;
+import com.redislabs.lettusearch.search.Schema;
+import com.redislabs.lettusearch.search.SearchOptions;
+import com.redislabs.lettusearch.search.SearchResults;
+import com.redislabs.lettusearch.search.field.GeoField;
+import com.redislabs.lettusearch.search.field.NumericField;
+import com.redislabs.lettusearch.search.field.TagField;
 
 import io.lettuce.core.RedisCommandExecutionException;
 import lombok.extern.slf4j.Slf4j;
@@ -47,14 +56,34 @@ public class InventoryManager
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired
-	private StringRedisTemplate template;
+	private StringRedisTemplate redis;
 	private StreamMessageListenerContainer<String, MapRecord<String, String, String>> container;
 	private Subscription subscription;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.container = StreamMessageListenerContainer.create(template.getConnectionFactory(),
-				StreamMessageListenerContainerOptions.builder().pollTimeout(Duration.ofMillis(10000)).build());
+		String index = config.getInventory().getIndex();
+		log.info("Dropping {} index", index);
+		try {
+			connection.sync().drop(index, DropOptions.builder().build());
+		} catch (RedisCommandExecutionException e) {
+			if (!e.getMessage().equals("Unknown Index name")) {
+				throw e;
+			}
+		}
+		log.info("Creating {} index", index);
+		Schema schema = Schema.builder().field(TagField.builder().name(STORE_ID).sortable(true).build())
+				.field(TagField.builder().name(PRODUCT_ID).build()).field(GeoField.builder().name("location").build())
+				.field(NumericField.builder().name(AVAILABLE_TO_PROMISE).sortable(true).build())
+				.field(NumericField.builder().name(ON_HAND).sortable(true).build())
+				.field(NumericField.builder().name(ALLOCATED).sortable(true).build())
+				.field(NumericField.builder().name(RESERVED).sortable(true).build())
+				.field(NumericField.builder().name(VIRTUAL_HOLD).sortable(true).build())
+				.field(NumericField.builder().name(EPOCH).sortable(true).build()).build();
+		connection.sync().create(index, schema);
+		this.container = StreamMessageListenerContainer.create(redis.getConnectionFactory(),
+				StreamMessageListenerContainerOptions.builder()
+						.pollTimeout(Duration.ofMillis(config.getStreamPollTimeout())).build());
 		container.start();
 		this.subscription = container.receive(StreamOffset.fromStart(config.getInventory().getInputStream()), this);
 		subscription.await(Duration.ofSeconds(2));
@@ -105,7 +134,7 @@ public class InventoryManager
 		inventory.put(TIME, time.format(DateTimeFormatter.ISO_INSTANT));
 		inventory.put(EPOCH, String.valueOf(time.toEpochSecond()));
 		inventory.put(LEVEL, config.getInventory().level(availableToPromise));
-		template.opsForStream().add(config.getInventory().getOutputStream(), inventory);
+		redis.opsForStream().add(config.getInventory().getOutputStream(), inventory);
 		try {
 			connection.sync().add(config.getInventory().getIndex(), docId, 1.0, inventory, addOptions);
 		} catch (RedisCommandExecutionException e) {
@@ -120,6 +149,24 @@ public class InventoryManager
 		int demand = allocated + reserved + virtualHold;
 		int supply = Integer.parseInt(inventory.get(ON_HAND));
 		return supply - demand;
+	}
+
+	@Scheduled(fixedRateString = "${brewdis.inventory.cleanup.rate}")
+	public void cleanup() {
+		ZonedDateTime time = ZonedDateTime.now()
+				.minus(Duration.ofSeconds(config.getInventory().getCleanup().getAgeThreshold()));
+		String query = "@epoch:[0 " + time.toEpochSecond() + "]";
+		String index = config.getInventory().getIndex();
+		SearchResults<String, String> results = connection.sync().search(index, query,
+				SearchOptions.builder().noContent(true)
+						.limit(Limit.builder().num(config.getInventory().getCleanup().getSearchLimit()).build())
+						.build());
+		results.forEach(r -> connection.sync().del(index, r.getDocumentId(), true));
+		if (results.size() > 0) {
+			log.info("Deleted {} docs from {} index", results.size(), config.getInventory().getIndex());
+		}
+		redis.opsForStream().trim(config.getInventory().getInputStream(),
+				config.getInventory().getCleanup().getStreamTrimCount());
 	}
 
 }

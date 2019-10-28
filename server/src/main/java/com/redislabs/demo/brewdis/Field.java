@@ -1,4 +1,4 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
 public class Field {
 

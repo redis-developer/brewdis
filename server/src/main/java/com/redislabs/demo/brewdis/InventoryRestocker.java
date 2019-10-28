@@ -1,8 +1,9 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demos.retail.Field.ON_HAND;
-import static com.redislabs.demos.retail.Field.PRODUCT_ID;
-import static com.redislabs.demos.retail.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demo.brewdis.Field.ON_HAND;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.Field.STORE_ID;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -53,7 +54,8 @@ public class InventoryRestocker
 		this.onHands = random.ints(config.getInventory().getRestock().getDeltaMin(),
 				config.getInventory().getRestock().getDeltaMax()).iterator();
 		this.container = StreamMessageListenerContainer.create(template.getConnectionFactory(),
-				StreamMessageListenerContainerOptions.builder().pollTimeout(Duration.ofMillis(10000)).build());
+				StreamMessageListenerContainerOptions.builder()
+						.pollTimeout(Duration.ofMillis(config.getStreamPollTimeout())).build());
 		container.start();
 		this.subscription = container.receive(StreamOffset.latest(config.getInventory().getOutputStream()), this);
 		subscription.await(Duration.ofSeconds(2));
@@ -77,7 +79,7 @@ public class InventoryRestocker
 	public void onMessage(MapRecord<String, String, String> message) {
 		String store = message.getValue().get(STORE_ID);
 		String sku = message.getValue().get(PRODUCT_ID);
-		int available = Integer.parseInt(message.getValue().get(Field.AVAILABLE_TO_PROMISE));
+		int available = Integer.parseInt(message.getValue().get(AVAILABLE_TO_PROMISE));
 		if (available < config.getInventory().getRestock().getThreshold()) {
 			String id = config.concat(store, sku);
 			if (scheduledRestocks.containsKey(id)) {

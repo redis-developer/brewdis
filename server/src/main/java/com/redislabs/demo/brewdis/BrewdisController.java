@@ -1,12 +1,12 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demos.retail.Field.ADDED;
-import static com.redislabs.demos.retail.Field.AVAILABLE_TO_PROMISE;
-import static com.redislabs.demos.retail.Field.LEVEL;
-import static com.redislabs.demos.retail.Field.LOCATION;
-import static com.redislabs.demos.retail.Field.PRODUCT_DESCRIPTION;
-import static com.redislabs.demos.retail.Field.PRODUCT_ID;
-import static com.redislabs.demos.retail.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.Field.ADDED;
+import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demo.brewdis.Field.LEVEL;
+import static com.redislabs.demo.brewdis.Field.LOCATION;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.Field.STORE_ID;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.redislabs.demos.retail.BrewdisConfig.StompConfig;
-import com.redislabs.demos.retail.BrewdisController.BrewerySuggestion.BrewerySuggestionBuilder;
+import com.redislabs.demo.brewdis.BrewdisConfig.StompConfig;
+import com.redislabs.demo.brewdis.BrewdisController.BrewerySuggestion.BrewerySuggestionBuilder;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.Direction;
 import com.redislabs.lettusearch.search.HighlightOptions;
@@ -61,9 +61,9 @@ class BrewdisController {
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired
-	private InventoryGenerator generator;
+	private InventoryUpdateGenerator generator;
 	@Autowired
-	private ReferenceData data;
+	private DataLoader data;
 	private ObjectMapper mapper = new ObjectMapper();
 
 	@GetMapping("/config/stomp")
@@ -130,7 +130,7 @@ class BrewdisController {
 
 	@GetMapping("/inventory")
 	public SearchResults<String, String> inventory(@RequestParam(name = "store", required = false) String store) {
-		String query = store == null ? "*" : data.tag(STORE_ID, store);
+		String query = store == null ? "*" : config.tag(STORE_ID, store);
 		return connection.sync().search(config.getInventory().getIndex(), query,
 				SearchOptions.builder().sortBy(SortBy.builder().field(STORE_ID).field(PRODUCT_ID).build())
 						.limit(Limit.builder().num(config.getInventory().getSearchLimit()).build()).build());
@@ -152,7 +152,7 @@ class BrewdisController {
 			skus.add(sku);
 		}
 		if (!skus.isEmpty()) {
-			query += " " + data.tag(PRODUCT_ID, String.join("|", skus));
+			query += " " + config.tag(PRODUCT_ID, String.join("|", skus));
 		}
 		SearchResults<String, String> results = connection.sync().search(config.getInventory().getIndex(), query,
 				SearchOptions.builder()

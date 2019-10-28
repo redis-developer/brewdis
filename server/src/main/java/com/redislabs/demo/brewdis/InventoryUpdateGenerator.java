@@ -1,11 +1,11 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demos.retail.Field.ALLOCATED;
-import static com.redislabs.demos.retail.Field.ON_HAND;
-import static com.redislabs.demos.retail.Field.RESERVED;
-import static com.redislabs.demos.retail.Field.PRODUCT_ID;
-import static com.redislabs.demos.retail.Field.STORE_ID;
-import static com.redislabs.demos.retail.Field.VIRTUAL_HOLD;
+import static com.redislabs.demo.brewdis.Field.ALLOCATED;
+import static com.redislabs.demo.brewdis.Field.ON_HAND;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.Field.RESERVED;
+import static com.redislabs.demo.brewdis.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.Field.VIRTUAL_HOLD;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +21,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.redislabs.demos.retail.BrewdisConfig.InventoryGeneratorConfig;
+import com.redislabs.demo.brewdis.BrewdisConfig.InventoryGeneratorConfig;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.AddOptions;
 
@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class InventoryGenerator implements InitializingBean {
+public class InventoryUpdateGenerator implements InitializingBean {
 
 	@Autowired
 	private BrewdisConfig config;
@@ -67,10 +67,13 @@ public class InventoryGenerator implements InitializingBean {
 		if (skus.isEmpty()) {
 			return;
 		}
+		String stream = config.getInventory().getInputStream();
 		String store = stores.toArray(new String[stores.size()])[random.nextInt(stores.size())];
 		String sku = skus.toArray(new String[skus.size()])[random.nextInt(skus.size())];
-		template.opsForStream().add(config.getInventory().getInputStream(),
-				Map.of(STORE_ID, store, PRODUCT_ID, sku, ALLOCATED, String.valueOf(allocated.nextInt())));
+		Map<String, String> fields = Map.of(STORE_ID, store, PRODUCT_ID, sku, ALLOCATED,
+				String.valueOf(allocated.nextInt()));
+		log.debug("XADD stream {} fields {}");
+		template.opsForStream().add(stream, fields);
 	}
 
 	public void add(List<String> stores, String sku) {
@@ -87,8 +90,8 @@ public class InventoryGenerator implements InitializingBean {
 				log.warn("Unknown store {}", storeDocId);
 			}
 			Map<String, String> inventory = new HashMap<>();
-			config.getMapping().getProductToInventory().forEach((k, v) -> inventory.put(v, productDoc.get(k)));
-			config.getMapping().getStoreToInventory().forEach((k, v) -> inventory.put(v, storeDoc.get(k)));
+			config.getProduct().getInventoryMapping().forEach((k, v) -> inventory.put(v, productDoc.get(k)));
+			config.getStore().getInventoryMapping().forEach((k, v) -> inventory.put(v, storeDoc.get(k)));
 			inventory.put(ON_HAND, String.valueOf(onHands.nextInt()));
 			inventory.put(ALLOCATED, String.valueOf(allocateds.nextInt()));
 			inventory.put(RESERVED, String.valueOf(reserveds.nextInt()));

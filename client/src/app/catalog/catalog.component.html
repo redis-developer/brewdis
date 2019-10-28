@@ -78,31 +78,30 @@
 </form>
 <br>
 
-<mat-grid-list cols="5" rowHeight="20:26">
+<mat-grid-list cols="5" rowHeight="16:25">
 	<mat-grid-tile *ngFor="let product of results | async">
-		<mat-card>
+		<mat-card class="product-card">
 			<mat-card-header>
 				<mat-card-title class="product-name">{{product.name}}</mat-card-title>
 				<mat-card-subtitle>{{product.breweryName}}</mat-card-subtitle>
 			</mat-card-header>
-			<mat-card-actions class="button-overlay">
-				<button mat-mini-fab (click)="openDescriptionDialog(product)" class="description-button">
+			<img mat-card-image class="product-label"
+				src="{{ product.hasOwnProperty('labels.medium') ? product['labels.medium'] : 'assets/brewdis.svg' }}"
+				alt="{{product.name}}">
+			<mat-card-content>
+				<p class="product-detail">ABV: {{product.abv}}% &nbsp; &nbsp; IBU: {{product.ibu}}</p>
+			</mat-card-content>
+			<mat-card-actions align="end">
+				<button mat-mini-fab (click)="openDescriptionDialog(product)" class="action-button">
 					<mat-icon>description</mat-icon>
 				</button>
-				<button mat-mini-fab [disabled]="product.added" (click)="addProduct(product)" class="add-button">
+				<button mat-mini-fab [disabled]="product.added" (click)="addProduct(product)" class="action-button">
 					<mat-icon>playlist_add</mat-icon>
 				</button>
 				<button mat-mini-fab [routerLink]="['/availability', product.sku]">
 					<mat-icon>map</mat-icon>
 				</button>
 			</mat-card-actions>
-			<mat-card-content>
-				<p class="product-detail">ABV: {{product.abv}}%</p>
-				<p class="product-detail">IBU: {{product.ibu}}</p>
-			</mat-card-content>
-			<img mat-card-image class="product-label"
-				src="{{ product.hasOwnProperty('labels.medium') ? product['labels.medium'] : 'assets/brewdis.svg' }}"
-				alt="{{product.name}}">
 		</mat-card>
 	</mat-grid-tile>
 </mat-grid-list>

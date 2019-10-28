@@ -1,4 +1,4 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
 import java.time.Duration;
 
@@ -31,7 +31,8 @@ public class InventoryForwarder
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.container = StreamMessageListenerContainer.create(template.getConnectionFactory(),
-				StreamMessageListenerContainerOptions.builder().pollTimeout(Duration.ofMillis(100)).build());
+				StreamMessageListenerContainerOptions.builder()
+						.pollTimeout(Duration.ofMillis(config.getStreamPollTimeout())).build());
 		container.start();
 		this.subscription = container.receive(StreamOffset.latest(config.getInventory().getOutputStream()), this);
 		subscription.await(Duration.ofSeconds(2));

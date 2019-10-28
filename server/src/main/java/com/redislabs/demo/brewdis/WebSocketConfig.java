@@ -1,4 +1,4 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;

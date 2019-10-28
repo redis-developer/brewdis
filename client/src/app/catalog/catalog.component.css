@@ -22,40 +22,42 @@ mat-card {
 	white-space: nowrap;
 }
 
+.product-card {
+	max-width: 400px;
+}
+
 .product-name {
-	font-size: 1em;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
 }
 
-.mat-card-subtitle {
+.mat-card-content {
 	margin-bottom: 0px;
 }
+
+/* .mat-card-subtitle {
+	margin-bottom: 0px;
+} */
 
 .product-label {
 	margin-top: 0px;
-	margin-bottom: 0px;
+	/* margin-bottom: 0px; */
 }
 
-.product-detail {
+/* .product-detail {
 	position: relative;
 	display: inline-block;
-	min-width: 64px;
-	padding: 0 16px;
-}
+	padding: 0 8px;
+} */
 
-.button-overlay {
+/* .button-overlay {
 	display: inline-block;
 	position: absolute;
 	right: 10px;
 	top: 35px;
-}
+}*/
 
-.description-button {
-	margin-right: 5px;
-}
-
-.add-button {
+.action-button {
 	margin-right: 5px;
 }

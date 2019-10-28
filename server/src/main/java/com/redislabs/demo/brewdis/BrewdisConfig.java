@@ -1,4 +1,4 @@
-package com.redislabs.demos.retail;
+package com.redislabs.demo.brewdis;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -17,13 +17,13 @@ import lombok.Data;
 public class BrewdisConfig {
 
 	private String keySeparator;
+	private long streamPollTimeout = 100;
 	private StompConfig stomp = new StompConfig();
 	private String availabilityRadius;
 	private ProductConfig product = new ProductConfig();
 	private StoreConfig store = new StoreConfig();
 	private InventoryConfig inventory = new InventoryConfig();
 	private SessionConfig session = new SessionConfig();
-	private DataMapping mapping = new DataMapping();
 
 	@Data
 	public static class SessionConfig {
@@ -35,6 +35,8 @@ public class BrewdisConfig {
 	public static class StoreConfig {
 		private String index;
 		private String keyspace;
+		private String url;
+		private Map<String, String> inventoryMapping = new HashMap<>();
 	}
 
 	@Data
@@ -43,6 +45,8 @@ public class BrewdisConfig {
 		private String keyspace;
 		private String brewerySuggestionIndex;
 		private boolean brewerySuggestIndexFuzzy;
+		private String url;
+		private Map<String, String> inventoryMapping = new HashMap<>();
 	}
 
 	@Data
@@ -67,12 +71,6 @@ public class BrewdisConfig {
 			}
 			return "high";
 		}
-	}
-
-	@Data
-	public static class DataMapping {
-		private Map<String, String> storeToInventory = new HashMap<>();
-		private Map<String, String> productToInventory = new HashMap<>();
 	}
 
 	@Data
@@ -120,6 +118,10 @@ public class BrewdisConfig {
 
 	public String concat(String... keys) {
 		return String.join(keySeparator, keys);
+	}
+
+	public String tag(String field, String value) {
+		return "@" + field + ":{" + value + "}";
 	}
 
 }
