@@ -6,7 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   debounceTime, filter
 } from 'rxjs/operators';
-import {MatDialog, MAT_DIALOG_DATA} from '@angular/material/dialog';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-catalog',
@@ -34,7 +34,7 @@ export class CatalogComponent implements OnInit {
   constructor(private searchService: SearchService, private route: ActivatedRoute, private router: Router, public dialog: MatDialog) { }
 
   openDescriptionDialog(product: any) {
-    this.dialog.open(DescriptionDialog, {
+    this.dialog.open(DescriptionDialogComponent, {
       data: product
     });
   }
@@ -69,7 +69,7 @@ export class CatalogComponent implements OnInit {
     this.ibuField.valueChanges.subscribe(
       (ibu: string) => this.addQueryCriteria('@ibu:[' + ibu.replace('-', ' ') + ']')
     );
-    this.labelField.valueChanges.pipe( filter((label:string)=>label=='required')).subscribe(
+    this.labelField.valueChanges.pipe(filter((label: string) => label === 'required')).subscribe(
       (label: string) => this.addQueryCriteria('@label:{true}')
     );
     this.searchService.categories().subscribe(data => this.categories = data);
@@ -84,7 +84,7 @@ export class CatalogComponent implements OnInit {
   }
 
   addQueryCriteria(criteria: string) {
-    let query = this.searchField.value ? this.searchField.value + ' ' : '';
+    const query = this.searchField.value ? this.searchField.value + ' ' : '';
     this.searchField.setValue(query + criteria);
   }
 
@@ -109,9 +109,9 @@ export class CatalogComponent implements OnInit {
 }
 
 @Component({
-  selector: 'description-dialog',
+  selector: 'app-description-dialog',
   templateUrl: 'description-dialog.html',
 })
-export class DescriptionDialog {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any) {}
+export class DescriptionDialogComponent {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any) { }
 }
