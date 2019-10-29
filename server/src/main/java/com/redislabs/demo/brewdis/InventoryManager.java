@@ -151,7 +151,7 @@ public class InventoryManager
 		return supply - demand;
 	}
 
-	@Scheduled(fixedRateString = "${brewdis.inventory.cleanup.rate}")
+	@Scheduled(fixedRateString = "${inventory.cleanup.rate}")
 	public void cleanup() {
 		ZonedDateTime time = ZonedDateTime.now()
 				.minus(Duration.ofSeconds(config.getInventory().getCleanup().getAgeThreshold()));

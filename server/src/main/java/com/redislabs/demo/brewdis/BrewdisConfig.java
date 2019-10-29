@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import lombok.Data;
 
 @Configuration
-@ConfigurationProperties(prefix = "brewdis")
+@ConfigurationProperties(prefix = "")
 @EnableAutoConfiguration
 @Data
 public class BrewdisConfig {

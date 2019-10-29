@@ -59,7 +59,7 @@ public class InventoryUpdateGenerator implements InitializingBean {
 
 	}
 
-	@Scheduled(fixedRateString = "${brewdis.inventory.generator.rate}")
+	@Scheduled(fixedRateString = "${inventory.generator.rate}")
 	public void generate() {
 		if (stores.isEmpty()) {
 			return;
