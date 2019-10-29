@@ -1,7 +1,7 @@
 = Brewdis
 :idprefix:
 :idseparator: -
-ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+ifdef::env-github[]
 :toc: preamble
 endif::[]
 ifndef::env-github[:icons: font]
