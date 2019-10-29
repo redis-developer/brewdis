@@ -1,15 +1,6 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.BREWERY_ICON;
-import static com.redislabs.demo.brewdis.Field.BREWERY_ID;
-import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
-import static com.redislabs.demo.brewdis.Field.CATEGORY_ID;
-import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
-import static com.redislabs.demo.brewdis.Field.COUNT;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.Field.STORE_ID;
-import static com.redislabs.demo.brewdis.Field.STYLE_ID;
-import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
+import static com.redislabs.demo.brewdis.Field.*;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -127,8 +118,9 @@ public class DataLoader {
 			}
 		}
 		Schema schema = Schema.builder().field(TagField.builder().name(PRODUCT_ID).sortable(true).build())
-				.field(TextField.builder().name("name").build())
-				.field(TextField.builder().name("description").matcher(PhoneticMatcher.English).build())
+				.field(TextField.builder().name(PRODUCT_NAME).build())
+				.field(TextField.builder().name(PRODUCT_DESCRIPTION).matcher(PhoneticMatcher.English).build())
+				.field(TagField.builder().name(PRODUCT_LABEL).build())
 				.field(TagField.builder().name(CATEGORY_ID).sortable(true).build())
 				.field(TextField.builder().name(CATEGORY_NAME).build())
 				.field(TagField.builder().name(STYLE_ID).sortable(true).build())
@@ -145,7 +137,7 @@ public class DataLoader {
 		command.setFileReaderOptions(readerOptions);
 		ProcessorOptions processorOptions = new ProcessorOptions();
 		processorOptions.addField(PRODUCT_ID, "id");
-		processorOptions.addField("label", "containsKey('labels')");
+		processorOptions.addField(PRODUCT_LABEL, "containsKey('labels')");
 		processorOptions.addField(CATEGORY_ID, "style.category.id");
 		processorOptions.addField(CATEGORY_NAME, "style.category.name");
 		processorOptions.addField(STYLE_NAME, "style.shortName");

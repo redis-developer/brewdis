@@ -1,12 +1,6 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.ADDED;
-import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
-import static com.redislabs.demo.brewdis.Field.LEVEL;
-import static com.redislabs.demo.brewdis.Field.LOCATION;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.Field.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -81,7 +75,8 @@ class BrewdisController {
 	@PostMapping("/products")
 	public SearchResults<String, String> products(@RequestBody Query query, HttpSession session) {
 		SearchOptionsBuilder options = SearchOptions.builder()
-				.highlight(HighlightOptions.builder().field(PRODUCT_DESCRIPTION)
+				.highlight(HighlightOptions.builder().field(PRODUCT_NAME).field(PRODUCT_DESCRIPTION)
+						.field(CATEGORY_NAME).field(STYLE_NAME).field(BREWERY_NAME)
 						.tags(TagOptions.builder().open("<mark>").close("</mark>").build()).build())
 				.limit(Limit.builder().num(query.getLimit()).build());
 		if (query.getSortByField() != null) {

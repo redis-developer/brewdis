@@ -82,8 +82,8 @@
 	<mat-grid-tile *ngFor="let product of results | async">
 		<mat-card class="product-card">
 			<mat-card-header>
-				<mat-card-title class="product-name">{{product.name}}</mat-card-title>
-				<mat-card-subtitle>{{product.breweryName}}</mat-card-subtitle>
+				<mat-card-title class="product-name" [innerHTML]="product.name"></mat-card-title>
+				<mat-card-subtitle [innerHTML]="product.breweryName"></mat-card-subtitle>
 			</mat-card-header>
 			<img mat-card-image class="product-label"
 				src="{{ product.hasOwnProperty('labels.medium') ? product['labels.medium'] : 'assets/brewdis.svg' }}"
