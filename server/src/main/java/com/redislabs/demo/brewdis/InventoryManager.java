@@ -11,6 +11,7 @@ import static com.redislabs.demo.brewdis.Field.RESERVED;
 import static com.redislabs.demo.brewdis.Field.STORE_ID;
 import static com.redislabs.demo.brewdis.Field.TIME;
 import static com.redislabs.demo.brewdis.Field.VIRTUAL_HOLD;
+import static com.redislabs.demo.brewdis.Field.LOCATION;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -73,7 +74,8 @@ public class InventoryManager
 		}
 		log.info("Creating {} index", index);
 		Schema schema = Schema.builder().field(TagField.builder().name(STORE_ID).sortable(true).build())
-				.field(TagField.builder().name(PRODUCT_ID).build()).field(GeoField.builder().name("location").build())
+				.field(TagField.builder().name(PRODUCT_ID).sortable(true).build())
+				.field(GeoField.builder().name(LOCATION).build())
 				.field(NumericField.builder().name(AVAILABLE_TO_PROMISE).sortable(true).build())
 				.field(NumericField.builder().name(ON_HAND).sortable(true).build())
 				.field(NumericField.builder().name(ALLOCATED).sortable(true).build())
@@ -108,7 +110,7 @@ public class InventoryManager
 		Map<String, String> inventory = connection.sync().get(config.getInventory().getIndex(), docId);
 		if (message.getValue().containsKey(ON_HAND)) {
 			int delta = Integer.parseInt(message.getValue().get(ON_HAND));
-			log.info("Received restocking for {}:{} delta={}", store, sku, delta);
+			log.info("Received restocking for {}:{} {}={}", store, sku, DELTA, delta);
 			int previousOnHand = Integer.parseInt(inventory.get(ON_HAND));
 			int onHand = previousOnHand + delta;
 			inventory.put(ON_HAND, String.valueOf(onHand));
@@ -155,7 +157,7 @@ public class InventoryManager
 	public void cleanup() {
 		ZonedDateTime time = ZonedDateTime.now()
 				.minus(Duration.ofSeconds(config.getInventory().getCleanup().getAgeThreshold()));
-		String query = "@epoch:[0 " + time.toEpochSecond() + "]";
+		String query = "@" + EPOCH + ":[0 " + time.toEpochSecond() + "]";
 		String index = config.getInventory().getIndex();
 		SearchResults<String, String> results = connection.sync().search(index, query,
 				SearchOptions.builder().noContent(true)

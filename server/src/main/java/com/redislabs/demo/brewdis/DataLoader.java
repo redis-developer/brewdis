@@ -6,6 +6,7 @@ import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
 import static com.redislabs.demo.brewdis.Field.CATEGORY_ID;
 import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
 import static com.redislabs.demo.brewdis.Field.COUNT;
+import static com.redislabs.demo.brewdis.Field.LOCATION;
 import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
 import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
 import static com.redislabs.demo.brewdis.Field.PRODUCT_LABEL;
@@ -94,7 +95,7 @@ public class DataLoader {
 				.field(TagField.builder().name("isDefault").sortable(true).build())
 				.field(TagField.builder().name("preferred").sortable(true).build())
 				.field(NumericField.builder().name("latitude").sortable(true).build())
-				.field(GeoField.builder().name("location").build())
+				.field(GeoField.builder().name(LOCATION).build())
 				.field(NumericField.builder().name("longitude").sortable(true).build())
 				.field(TagField.builder().name("rollupInventory").sortable(true).build())
 				.field(TagField.builder().name("state").sortable(true).build())
@@ -107,7 +108,7 @@ public class DataLoader {
 		readerOptions.setHeader(true);
 		command.setFileReaderOptions(readerOptions);
 		ProcessorOptions processorOptions = new ProcessorOptions();
-		processorOptions.getFields().put("location", "#geo(longitude,latitude)");
+		processorOptions.getFields().put(LOCATION, "#geo(longitude,latitude)");
 		command.setProcessorOptions(processorOptions);
 		RedisWriterOptions writerOptions = new RedisWriterOptions();
 		RediSearchCommandOptions searchOptions = new RediSearchCommandOptions();
