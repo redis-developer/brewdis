@@ -5,13 +5,13 @@ import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
 import static com.redislabs.demo.brewdis.Field.DELTA;
 import static com.redislabs.demo.brewdis.Field.EPOCH;
 import static com.redislabs.demo.brewdis.Field.LEVEL;
+import static com.redislabs.demo.brewdis.Field.LOCATION;
 import static com.redislabs.demo.brewdis.Field.ON_HAND;
 import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
 import static com.redislabs.demo.brewdis.Field.RESERVED;
 import static com.redislabs.demo.brewdis.Field.STORE_ID;
 import static com.redislabs.demo.brewdis.Field.TIME;
 import static com.redislabs.demo.brewdis.Field.VIRTUAL_HOLD;
-import static com.redislabs.demo.brewdis.Field.LOCATION;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -87,7 +87,8 @@ public class InventoryManager
 				StreamMessageListenerContainerOptions.builder()
 						.pollTimeout(Duration.ofMillis(config.getStreamPollTimeout())).build());
 		container.start();
-		this.subscription = container.receive(StreamOffset.fromStart(config.getInventory().getInputStream()), this);
+		this.subscription = container.receive(StreamOffset.fromStart(config.getInventory().getGenerator().getStream()),
+				this);
 		subscription.await(Duration.ofSeconds(2));
 	}
 
@@ -136,7 +137,7 @@ public class InventoryManager
 		inventory.put(TIME, time.format(DateTimeFormatter.ISO_INSTANT));
 		inventory.put(EPOCH, String.valueOf(time.toEpochSecond()));
 		inventory.put(LEVEL, config.getInventory().level(availableToPromise));
-		redis.opsForStream().add(config.getInventory().getOutputStream(), inventory);
+		redis.opsForStream().add(config.getInventory().getStream(), inventory);
 		try {
 			connection.sync().add(config.getInventory().getIndex(), docId, 1.0, inventory, addOptions);
 		} catch (RedisCommandExecutionException e) {
@@ -167,7 +168,9 @@ public class InventoryManager
 		if (results.size() > 0) {
 			log.info("Deleted {} docs from {} index", results.size(), config.getInventory().getIndex());
 		}
-		redis.opsForStream().trim(config.getInventory().getInputStream(),
+		redis.opsForStream().trim(config.getInventory().getGenerator().getStream(),
+				config.getInventory().getCleanup().getStreamTrimCount());
+		redis.opsForStream().trim(config.getInventory().getStream(),
 				config.getInventory().getCleanup().getStreamTrimCount());
 	}
 

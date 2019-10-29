@@ -34,7 +34,7 @@ public class InventoryForwarder
 				StreamMessageListenerContainerOptions.builder()
 						.pollTimeout(Duration.ofMillis(config.getStreamPollTimeout())).build());
 		container.start();
-		this.subscription = container.receive(StreamOffset.latest(config.getInventory().getOutputStream()), this);
+		this.subscription = container.receive(StreamOffset.latest(config.getInventory().getStream()), this);
 		subscription.await(Duration.ofSeconds(2));
 	}
 

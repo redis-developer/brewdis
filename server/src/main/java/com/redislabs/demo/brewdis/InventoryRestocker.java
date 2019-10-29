@@ -35,14 +35,13 @@ public class InventoryRestocker
 		implements InitializingBean, DisposableBean, StreamListener<String, MapRecord<String, String, String>> {
 
 	@Autowired
-	private StringRedisTemplate template;
-	@Autowired
 	private BrewdisConfig config;
+	@Autowired
+	private StringRedisTemplate template;
 	private ScheduledExecutorService executor;
-
 	private OfInt delays;
 	private Subscription subscription;
-	private OfInt onHands;
+	private OfInt restockOnHands;
 	private StreamMessageListenerContainer<String, MapRecord<String, String, String>> container;
 	private Map<String, ZonedDateTime> scheduledRestocks = new HashMap<>();
 
@@ -51,13 +50,13 @@ public class InventoryRestocker
 		Random random = new Random();
 		this.delays = random.ints(config.getInventory().getRestock().getDelayMin(),
 				config.getInventory().getRestock().getDelayMax()).iterator();
-		this.onHands = random.ints(config.getInventory().getRestock().getDeltaMin(),
+		this.restockOnHands = random.ints(config.getInventory().getRestock().getDeltaMin(),
 				config.getInventory().getRestock().getDeltaMax()).iterator();
 		this.container = StreamMessageListenerContainer.create(template.getConnectionFactory(),
 				StreamMessageListenerContainerOptions.builder()
 						.pollTimeout(Duration.ofMillis(config.getStreamPollTimeout())).build());
 		container.start();
-		this.subscription = container.receive(StreamOffset.latest(config.getInventory().getOutputStream()), this);
+		this.subscription = container.receive(StreamOffset.latest(config.getInventory().getStream()), this);
 		subscription.await(Duration.ofSeconds(2));
 		executor = Executors.newSingleThreadScheduledExecutor();
 	}
@@ -92,8 +91,8 @@ public class InventoryRestocker
 
 				@Override
 				public void run() {
-					int delta = onHands.nextInt();
-					template.opsForStream().add(config.getInventory().getInputStream(),
+					int delta = restockOnHands.nextInt();
+					template.opsForStream().add(config.getInventory().getGenerator().getStream(),
 							Map.of(STORE_ID, store, PRODUCT_ID, sku, ON_HAND, String.valueOf(delta)));
 					scheduledRestocks.remove(id);
 				}

@@ -17,7 +17,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +34,7 @@ public class InventoryUpdateGenerator implements InitializingBean {
 	@Autowired
 	private BrewdisConfig config;
 	@Autowired
-	private RedisTemplate<String, String> template;
+	private StringRedisTemplate template;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	private Random random = new Random();
@@ -67,7 +67,7 @@ public class InventoryUpdateGenerator implements InitializingBean {
 		if (skus.isEmpty()) {
 			return;
 		}
-		String stream = config.getInventory().getInputStream();
+		String stream = config.getInventory().getGenerator().getStream();
 		String store = stores.toArray(new String[stores.size()])[random.nextInt(stores.size())];
 		String sku = skus.toArray(new String[skus.size()])[random.nextInt(skus.size())];
 		Map<String, String> fields = Map.of(STORE_ID, store, PRODUCT_ID, sku, ALLOCATED,
