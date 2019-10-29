@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redislabs.demo.brewdis.BrewdisConfig.StompConfig;
-import com.redislabs.demo.brewdis.BrewdisController.BrewerySuggestion.BrewerySuggestionBuilder;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.Direction;
 import com.redislabs.lettusearch.search.HighlightOptions;
@@ -199,7 +198,6 @@ class BrewdisController {
 	}
 
 	@Data
-	@Builder
 	public static class BrewerySuggestion {
 		private String id;
 		private String name;
@@ -207,7 +205,6 @@ class BrewdisController {
 	}
 
 	@Data
-	@Builder
 	public static class BrewerySuggestionPayload {
 		private String id;
 		private String icon;
@@ -220,15 +217,17 @@ class BrewdisController {
 				prefix, SuggestGetOptions.builder().withPayloads(true).max(20l)
 						.fuzzy(config.getProduct().isBrewerySuggestIndexFuzzy()).build());
 		return results.stream().map(s -> {
-			BrewerySuggestionBuilder builder = BrewerySuggestion.builder().name(s.getString());
+			BrewerySuggestion suggestion = new BrewerySuggestion();
+			suggestion.setName(s.getString());
 			BrewerySuggestionPayload payload;
 			try {
 				payload = mapper.readValue(s.getPayload(), BrewerySuggestionPayload.class);
-				builder.id(payload.getId()).icon(payload.getIcon());
+				suggestion.setId(payload.getId());
+				suggestion.setIcon(payload.getIcon());
 			} catch (Exception e) {
 				log.error("Could not deserialize brewery payload {}", s.getPayload(), e);
 			}
-			return builder.build();
+			return suggestion;
 		});
 
 	}

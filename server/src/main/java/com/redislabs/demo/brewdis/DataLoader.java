@@ -203,8 +203,9 @@ public class DataLoader {
 						.build());
 		ObjectMapper mapper = new ObjectMapper();
 		results.forEach(r -> {
-			BrewerySuggestionPayload payloadObject = BrewerySuggestionPayload.builder().id(r.get(BREWERY_ID))
-					.icon(r.get(BREWERY_ICON)).build();
+			BrewerySuggestionPayload payloadObject = new BrewerySuggestionPayload();
+			payloadObject.setId(r.get(BREWERY_ID));
+			payloadObject.setIcon(r.get(BREWERY_ICON));
 			String payload = null;
 			try {
 				payload = mapper.writeValueAsString(payloadObject);
