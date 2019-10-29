@@ -22,7 +22,7 @@ public class BrewdisApplication implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		loader.loadAll();
+		loader.execute();
 	}
 
 }

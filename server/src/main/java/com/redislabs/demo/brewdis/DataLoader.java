@@ -1,6 +1,18 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.*;
+import static com.redislabs.demo.brewdis.Field.BREWERY_ICON;
+import static com.redislabs.demo.brewdis.Field.BREWERY_ID;
+import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
+import static com.redislabs.demo.brewdis.Field.CATEGORY_ID;
+import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
+import static com.redislabs.demo.brewdis.Field.COUNT;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_LABEL;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_NAME;
+import static com.redislabs.demo.brewdis.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.Field.STYLE_ID;
+import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -54,15 +66,16 @@ public class DataLoader {
 	@Getter
 	private Map<String, List<Style>> styles = new HashMap<>();
 
-	public void loadAll() {
+	public void execute() {
+		log.info("Loading data");
 		loadStores();
 		loadProducts();
 		loadCategoriesAndStyles();
 		loadBreweries();
+		log.info("Loaded data");
 	}
 
 	private void loadStores() {
-		log.info("Loading stores");
 		try {
 			connection.sync().drop(config.getStore().getIndex(), DropOptions.builder().build());
 		} catch (RedisCommandExecutionException e) {
@@ -105,11 +118,10 @@ public class DataLoader {
 		writerOptions.setKeyOptions(keyOptions);
 		writerOptions.setRediSearchCommandOptions(searchOptions);
 		command.setRedisWriterOptions(writerOptions);
-		command.execute("file-import", new RedisConnectionOptions());
+		command.execute("stores-import", new RedisConnectionOptions());
 	}
 
 	private void loadProducts() {
-		log.info("Loading products");
 		try {
 			connection.sync().drop(config.getProduct().getIndex(), DropOptions.builder().build());
 		} catch (RedisCommandExecutionException e) {
@@ -118,7 +130,7 @@ public class DataLoader {
 			}
 		}
 		Schema schema = Schema.builder().field(TagField.builder().name(PRODUCT_ID).sortable(true).build())
-				.field(TextField.builder().name(PRODUCT_NAME).build())
+				.field(TextField.builder().name(PRODUCT_NAME).sortable(true).build())
 				.field(TextField.builder().name(PRODUCT_DESCRIPTION).matcher(PhoneticMatcher.English).build())
 				.field(TagField.builder().name(PRODUCT_LABEL).build())
 				.field(TagField.builder().name(CATEGORY_ID).sortable(true).build())
@@ -156,11 +168,10 @@ public class DataLoader {
 		keyOptions.setKeys(PRODUCT_ID);
 		writerOptions.setKeyOptions(keyOptions);
 		command.setRedisWriterOptions(writerOptions);
-		command.execute("file-import", new RedisConnectionOptions());
+		command.execute("products-import", new RedisConnectionOptions());
 	}
 
 	private void loadCategoriesAndStyles() {
-		log.info("Loading categories");
 		RediSearchCommands<String, String> commands = connection.sync();
 		AggregateResults<String, String> results = commands.aggregate(config.getProduct().getIndex(), "*",
 				AggregateOptions.builder().load(CATEGORY_NAME)
@@ -171,7 +182,6 @@ public class DataLoader {
 				.map(r -> Category.builder().id(r.get(CATEGORY_ID)).name(r.get(CATEGORY_NAME)).build())
 				.sorted(Comparator.comparing(Category::getName, Comparator.nullsLast(Comparator.naturalOrder())))
 				.collect(Collectors.toList());
-		log.info("Loading styles for {} categories", categories.size());
 		this.categories.forEach(category -> {
 			AggregateResults<String, String> styleResults = connection.sync().aggregate(config.getProduct().getIndex(),
 					config.tag(CATEGORY_ID, category.getId()),
