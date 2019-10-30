@@ -1,6 +1,16 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.*;
+import static com.redislabs.demo.brewdis.Field.ADDED;
+import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
+import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
+import static com.redislabs.demo.brewdis.Field.LEVEL;
+import static com.redislabs.demo.brewdis.Field.LOCATION;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.Field.PRODUCT_NAME;
+import static com.redislabs.demo.brewdis.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -124,7 +134,10 @@ class BrewdisController {
 
 	@GetMapping("/inventory")
 	public SearchResults<String, String> inventory(@RequestParam(name = "store", required = false) String store) {
-		String query = store == null ? "*" : config.tag(STORE_ID, store);
+		String query = "@" + AVAILABLE_TO_PROMISE + ":[0 inf]";
+		if (store != null) {
+			query += " " + config.tag(STORE_ID, store);
+		}
 		return connection.sync().search(config.getInventory().getIndex(), query,
 				SearchOptions.builder().sortBy(SortBy.builder().field(STORE_ID).field(PRODUCT_ID).build())
 						.limit(Limit.builder().num(config.getInventory().getSearchLimit()).build()).build());
