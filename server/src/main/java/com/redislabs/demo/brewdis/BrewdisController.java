@@ -54,7 +54,7 @@ class BrewdisController {
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired
-	private InventoryUpdateGenerator generator;
+	private InventoryGenerator generator;
 	@Autowired
 	private DataLoader data;
 	private ObjectMapper mapper = new ObjectMapper();

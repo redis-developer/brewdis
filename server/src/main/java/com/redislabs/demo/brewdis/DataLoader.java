@@ -30,6 +30,8 @@ import com.redislabs.demo.brewdis.BrewdisController.BrewerySuggestionPayload;
 import com.redislabs.demo.brewdis.BrewdisController.Category;
 import com.redislabs.demo.brewdis.BrewdisController.Style;
 import com.redislabs.lettusearch.RediSearchCommands;
+import com.redislabs.lettusearch.RediSearchUtils;
+import com.redislabs.lettusearch.RediSearchUtils.Info;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.aggregate.AggregateOptions;
 import com.redislabs.lettusearch.aggregate.AggregateResults;
@@ -68,17 +70,22 @@ public class DataLoader {
 	private Map<String, List<Style>> styles = new HashMap<>();
 
 	public void execute() {
-		log.info("Loading data");
 		loadStores();
 		loadProducts();
-		loadCategoriesAndStyles();
 		loadBreweries();
-		log.info("Loaded data");
+		loadCategoriesAndStyles();
 	}
 
 	private void loadStores() {
+		RediSearchCommands<String, String> commands = connection.sync();
+		String index = config.getStore().getIndex();
 		try {
-			connection.sync().drop(config.getStore().getIndex(), DropOptions.builder().build());
+			Info info = RediSearchUtils.getInfo(commands.ftInfo(index));
+			if (info.getNumDocs() > 3000) {
+				log.info("Found {} stores - skipping load", info.getNumDocs());
+				return;
+			}
+			commands.drop(index, DropOptions.builder().build());
 		} catch (RedisCommandExecutionException e) {
 			if (!e.getMessage().equals("Unknown Index name")) {
 				throw e;
@@ -101,7 +108,7 @@ public class DataLoader {
 				.field(TagField.builder().name("state").sortable(true).build())
 				.field(TagField.builder().name("type").sortable(true).build())
 				.field(TagField.builder().name("postalCode").sortable(true).build()).build();
-		connection.sync().create(config.getStore().getIndex(), schema);
+		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
 		FileReaderOptions readerOptions = new FileReaderOptions();
 		readerOptions.setPath(config.getStore().getUrl());
@@ -112,7 +119,7 @@ public class DataLoader {
 		command.setProcessorOptions(processorOptions);
 		RedisWriterOptions writerOptions = new RedisWriterOptions();
 		RediSearchCommandOptions searchOptions = new RediSearchCommandOptions();
-		searchOptions.setIndex(config.getStore().getIndex());
+		searchOptions.setIndex(index);
 		KeyOptions keyOptions = new KeyOptions();
 		keyOptions.setKeyspace("store");
 		keyOptions.setKeys(STORE_ID);
@@ -123,8 +130,15 @@ public class DataLoader {
 	}
 
 	private void loadProducts() {
+		RediSearchCommands<String, String> commands = connection.sync();
+		String index = config.getProduct().getIndex();
 		try {
-			connection.sync().drop(config.getProduct().getIndex(), DropOptions.builder().build());
+			Info info = RediSearchUtils.getInfo(commands.ftInfo(index));
+			if (info.getNumDocs() > 80000) {
+				log.info("Found {} products - skipping load", info.getNumDocs());
+				return;
+			}
+			commands.drop(index, DropOptions.builder().build());
 		} catch (RedisCommandExecutionException e) {
 			if (!e.getMessage().equals("Unknown Index name")) {
 				throw e;
@@ -143,7 +157,7 @@ public class DataLoader {
 				.field(TagField.builder().name("isOrganic").sortable(true).build())
 				.field(NumericField.builder().name("abv").sortable(true).build())
 				.field(NumericField.builder().name("ibu").sortable(true).build()).build();
-		connection.sync().create(config.getProduct().getIndex(), schema);
+		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
 		FileReaderOptions readerOptions = new FileReaderOptions();
 		readerOptions.setPath(config.getProduct().getUrl());
@@ -162,7 +176,7 @@ public class DataLoader {
 		command.setProcessorOptions(processorOptions);
 		RedisWriterOptions writerOptions = new RedisWriterOptions();
 		RediSearchCommandOptions rediSearchCommandOptions = new RediSearchCommandOptions();
-		rediSearchCommandOptions.setIndex(config.getProduct().getIndex());
+		rediSearchCommandOptions.setIndex(index);
 		writerOptions.setRediSearchCommandOptions(rediSearchCommandOptions);
 		KeyOptions keyOptions = new KeyOptions();
 		keyOptions.setKeyspace("product");
@@ -173,8 +187,10 @@ public class DataLoader {
 	}
 
 	private void loadCategoriesAndStyles() {
+		log.info("Loading categories");
 		RediSearchCommands<String, String> commands = connection.sync();
-		AggregateResults<String, String> results = commands.aggregate(config.getProduct().getIndex(), "*",
+		String index = config.getProduct().getIndex();
+		AggregateResults<String, String> results = commands.aggregate(index, "*",
 				AggregateOptions.builder().load(CATEGORY_NAME)
 						.operation(Group.builder().property(CATEGORY_ID).property(CATEGORY_NAME)
 								.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
@@ -183,8 +199,9 @@ public class DataLoader {
 				.map(r -> Category.builder().id(r.get(CATEGORY_ID)).name(r.get(CATEGORY_NAME)).build())
 				.sorted(Comparator.comparing(Category::getName, Comparator.nullsLast(Comparator.naturalOrder())))
 				.collect(Collectors.toList());
+		log.info("Loading styles");
 		this.categories.forEach(category -> {
-			AggregateResults<String, String> styleResults = connection.sync().aggregate(config.getProduct().getIndex(),
+			AggregateResults<String, String> styleResults = commands.aggregate(index,
 					config.tag(CATEGORY_ID, category.getId()),
 					AggregateOptions.builder().load(STYLE_NAME)
 							.operation(Group.builder().property(STYLE_ID).property(STYLE_NAME)
@@ -199,7 +216,18 @@ public class DataLoader {
 	}
 
 	private void loadBreweries() {
-		AggregateResults<String, String> results = connection.sync().aggregate(config.getProduct().getIndex(), "*",
+		RediSearchCommands<String, String> commands = connection.sync();
+		try {
+			Long length = commands.suglen(config.getProduct().getBrewerySuggestionIndex());
+			if (length != null && length > 0) {
+				log.info("Found {} breweries - skipping load", length);
+				return;
+			}
+		} catch (RedisCommandExecutionException e) {
+			// ignore
+		}
+		log.info("Loading breweries");
+		AggregateResults<String, String> results = commands.aggregate(config.getProduct().getIndex(), "*",
 				AggregateOptions.builder().load(BREWERY_NAME).load(BREWERY_ICON)
 						.operation(Group.builder().property(BREWERY_ID).property(BREWERY_NAME).property(BREWERY_ICON)
 								.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
@@ -220,7 +248,7 @@ public class DataLoader {
 				return;
 			}
 			double count = Double.parseDouble(r.get(COUNT));
-			connection.sync().sugadd(config.getProduct().getBrewerySuggestionIndex(), breweryName, count, payload);
+			commands.sugadd(config.getProduct().getBrewerySuggestionIndex(), breweryName, count, payload);
 		});
 	}
 

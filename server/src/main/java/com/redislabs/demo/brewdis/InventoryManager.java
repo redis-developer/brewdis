@@ -31,6 +31,7 @@ import org.springframework.data.redis.stream.Subscription;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.redislabs.lettusearch.RediSearchCommands;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.AddOptions;
 import com.redislabs.lettusearch.search.DropOptions;
@@ -63,10 +64,11 @@ public class InventoryManager
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		RediSearchCommands<String, String> commands = connection.sync();
 		String index = config.getInventory().getIndex();
 		log.info("Dropping {} index", index);
 		try {
-			connection.sync().drop(index, DropOptions.builder().build());
+			commands.drop(index, DropOptions.builder().build());
 		} catch (RedisCommandExecutionException e) {
 			if (!e.getMessage().equals("Unknown Index name")) {
 				throw e;
@@ -82,13 +84,14 @@ public class InventoryManager
 				.field(NumericField.builder().name(RESERVED).sortable(true).build())
 				.field(NumericField.builder().name(VIRTUAL_HOLD).sortable(true).build())
 				.field(NumericField.builder().name(EPOCH).sortable(true).build()).build();
-		connection.sync().create(index, schema);
+		commands.create(index, schema);
+		String stream = config.getInventory().getGenerator().getStream();
+		redis.delete(stream);
 		this.container = StreamMessageListenerContainer.create(redis.getConnectionFactory(),
 				StreamMessageListenerContainerOptions.builder()
 						.pollTimeout(Duration.ofMillis(config.getStreamPollTimeout())).build());
 		container.start();
-		this.subscription = container.receive(StreamOffset.fromStart(config.getInventory().getGenerator().getStream()),
-				this);
+		this.subscription = container.receive(StreamOffset.fromStart(stream), this);
 		subscription.await(Duration.ofSeconds(2));
 	}
 
@@ -108,7 +111,8 @@ public class InventoryManager
 		String sku = message.getValue().get(PRODUCT_ID);
 		String id = config.concat(store, sku);
 		String docId = config.concat(config.getInventory().getKeyspace(), id);
-		Map<String, String> inventory = connection.sync().get(config.getInventory().getIndex(), docId);
+		RediSearchCommands<String, String> commands = connection.sync();
+		Map<String, String> inventory = commands.get(config.getInventory().getIndex(), docId);
 		if (message.getValue().containsKey(ON_HAND)) {
 			int delta = Integer.parseInt(message.getValue().get(ON_HAND));
 			log.info("Received restocking for {}:{} {}={}", store, sku, DELTA, delta);
@@ -139,7 +143,7 @@ public class InventoryManager
 		inventory.put(LEVEL, config.getInventory().level(availableToPromise));
 		redis.opsForStream().add(config.getInventory().getStream(), inventory);
 		try {
-			connection.sync().add(config.getInventory().getIndex(), docId, 1.0, inventory, addOptions);
+			commands.add(config.getInventory().getIndex(), docId, 1.0, inventory, addOptions);
 		} catch (RedisCommandExecutionException e) {
 			log.error("Could not add document {}: {}", docId, inventory, e);
 		}
@@ -160,11 +164,10 @@ public class InventoryManager
 				.minus(Duration.ofSeconds(config.getInventory().getCleanup().getAgeThreshold()));
 		String query = "@" + EPOCH + ":[0 " + time.toEpochSecond() + "]";
 		String index = config.getInventory().getIndex();
-		SearchResults<String, String> results = connection.sync().search(index, query,
-				SearchOptions.builder().noContent(true)
-						.limit(Limit.builder().num(config.getInventory().getCleanup().getSearchLimit()).build())
-						.build());
-		results.forEach(r -> connection.sync().del(index, r.getDocumentId(), true));
+		RediSearchCommands<String, String> commands = connection.sync();
+		SearchResults<String, String> results = commands.search(index, query, SearchOptions.builder().noContent(true)
+				.limit(Limit.builder().num(config.getInventory().getCleanup().getSearchLimit()).build()).build());
+		results.forEach(r -> commands.del(index, r.getDocumentId(), true));
 		if (results.size() > 0) {
 			log.info("Deleted {} docs from {} index", results.size(), config.getInventory().getIndex());
 		}
