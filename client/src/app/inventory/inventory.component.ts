@@ -4,8 +4,8 @@ import { StompService, StompConfig } from '@stomp/ng2-stompjs';
 import { HttpClient } from '@angular/common/http';
 import { MatTable } from '@angular/material';
 import { SearchService } from '../search.service';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 
 export interface InventoryData {
   store: string;
@@ -31,7 +31,7 @@ export class InventoryComponent implements OnInit {
 
   API_URL = '/api/';
   @ViewChild(MatTable, { static: true }) table: MatTable<any>;
-  @ViewChild(MatSort, {static: true}) sort: MatSort;
+  @ViewChild(MatSort, { static: true }) sort: MatSort;
 
   private stompService: StompService;
   dataSource = new MatTableDataSource();
@@ -60,7 +60,7 @@ export class InventoryComponent implements OnInit {
       heartbeat_in: 0,
       heartbeat_out: 20000,
       reconnect_delay: 5000,
-      debug: true
+      debug: false
     };
     this.stompService = new StompService(stompConfig);
     this.stompService.subscribe(config.inventoryTopic).subscribe(update => this.updateRowData(JSON.parse(update.body)));
