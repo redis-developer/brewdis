@@ -7,13 +7,14 @@ import static com.redislabs.demo.brewdis.Field.RESERVED;
 import static com.redislabs.demo.brewdis.Field.STORE_ID;
 import static com.redislabs.demo.brewdis.Field.VIRTUAL_HOLD;
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Random;
-import java.util.Set;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,31 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.redislabs.demo.brewdis.BrewdisConfig.InventoryGeneratorConfig;
+import com.redislabs.lettusearch.RediSearchCommands;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.AddOptions;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
 public class InventoryGenerator implements InitializingBean {
+
+	@Data
+	@AllArgsConstructor
+	public static class GeneratorRequest {
+		private ZonedDateTime time;
+		private List<StoreSku> storeSkus = new ArrayList<>();
+	}
+
+	@Data
+	@AllArgsConstructor
+	public static class StoreSku {
+		private String store;
+		private String sku;
+	}
 
 	@Autowired
 	private BrewdisConfig config;
@@ -39,8 +57,7 @@ public class InventoryGenerator implements InitializingBean {
 	private StatefulRediSearchConnection<String, String> connection;
 	private Random random = new Random();
 	private OfInt deltas;
-	private Set<String> stores = new HashSet<>();
-	private Set<String> skus = new HashSet<>();
+	private List<GeneratorRequest> requests = new ArrayList<>();
 	private OfInt onHands;
 	private OfInt allocateds;
 	private OfInt reserveds;
@@ -61,45 +78,76 @@ public class InventoryGenerator implements InitializingBean {
 
 	@Scheduled(fixedRateString = "${inventory.generator.rate}")
 	public void generate() {
-		if (stores.isEmpty()) {
-			return;
+		synchronized (requests) {
+			requests.forEach(r -> {
+				StoreSku s = r.getStoreSkus().get(random.nextInt(r.getStoreSkus().size()));
+				Map<String, String> update = new HashMap<>();
+				update.put(STORE_ID, s.getStore());
+				update.put(PRODUCT_ID, s.getSku());
+				update.put(ALLOCATED, String.valueOf(deltas.nextInt()));
+				redis.opsForStream().add(config.getInventory().getGenerator().getStream(), update);
+			});
 		}
-		if (skus.isEmpty()) {
-			return;
-		}
-		String store = stores.toArray(new String[stores.size()])[random.nextInt(stores.size())];
-		String sku = skus.toArray(new String[skus.size()])[random.nextInt(skus.size())];
-		String delta = String.valueOf(deltas.nextInt());
-		redis.opsForStream().add(config.getInventory().getGenerator().getStream(),
-				Map.of(STORE_ID, store, PRODUCT_ID, sku, ALLOCATED, delta));
 	}
 
-	public void add(List<String> stores, String sku) {
-		log.info("Adding stores {} and sku {}", stores, sku);
-		for (String store : stores) {
-			String productDocId = config.concat(config.getProduct().getKeyspace(), sku);
-			Map<String, String> productDoc = connection.sync().get(config.getProduct().getIndex(), productDocId);
-			if (productDoc == null) {
-				log.warn("Unknown product {}", productDocId);
+	@Scheduled(fixedRate = 60000)
+	public void pruneRequests() {
+		synchronized (requests) {
+			ZonedDateTime now = ZonedDateTime.now();
+			List<GeneratorRequest> expired = new ArrayList<>();
+			requests.forEach(r -> {
+				long ageInMinutes = ChronoUnit.MINUTES.between(r.getTime(), now);
+				if (ageInMinutes > config.getInventory().getGenerator().getRequestDurationInMin()) {
+					expired.add(r);
+				}
+			});
+			if (!requests.isEmpty()) {
+				log.info("Removing generator requests: {}", expired);
+				requests.removeAll(expired);
 			}
-			String storeDocId = config.concat(config.getStore().getKeyspace(), store);
-			Map<String, String> storeDoc = connection.sync().get(config.getStore().getIndex(), storeDocId);
-			if (storeDoc == null) {
-				log.warn("Unknown store {}", storeDocId);
-			}
-			Map<String, String> inventory = new HashMap<>();
-			config.getProduct().getInventoryMapping().forEach((k, v) -> inventory.put(v, productDoc.get(k)));
-			config.getStore().getInventoryMapping().forEach((k, v) -> inventory.put(v, storeDoc.get(k)));
-			inventory.put(ON_HAND, String.valueOf(onHands.nextInt()));
-			inventory.put(ALLOCATED, String.valueOf(allocateds.nextInt()));
-			inventory.put(RESERVED, String.valueOf(reserveds.nextInt()));
-			inventory.put(VIRTUAL_HOLD, String.valueOf(virtualHolds.nextInt()));
-			String docId = config.concat(config.getInventory().getKeyspace(), store, sku);
-			connection.sync().add(config.getInventory().getIndex(), docId, 1.0, inventory, addOptions);
 		}
-		this.stores.addAll(stores);
-		this.skus.add(sku);
+	}
 
+	public void add(List<String> stores, List<String> skus) {
+		log.info("Adding stores {} and skus {}", stores, skus);
+		List<StoreSku> storeSkus = new ArrayList<>();
+		for (int index = 0; index < skus.size(); index++) {
+			String sku = skus.get(index);
+			for (int i = 0; i < config.getInventory().getGenerator().getStoresPerSku(); i++) {
+				String store = stores.get((index + i) % stores.size());
+				storeSkus.add(new StoreSku(store, sku));
+			}
+		}
+		storeSkus.forEach(s -> {
+			String store = s.getStore();
+			String sku = s.getSku();
+			RediSearchCommands<String, String> commands = connection.sync();
+			String docId = config.concat(config.getInventory().getKeyspace(), store, sku);
+			if (commands.get(config.getInventory().getIndex(), docId) == null) {
+				Map<String, String> productDoc = commands.get(config.getProduct().getIndex(),
+						config.concat(config.getProduct().getKeyspace(), sku));
+				if (productDoc == null) {
+					log.warn("Unknown product '{}'", sku);
+					return;
+				}
+				Map<String, String> storeDoc = commands.get(config.getStore().getIndex(),
+						config.concat(config.getStore().getKeyspace(), store));
+				if (storeDoc == null) {
+					log.warn("Unknown store '{}'", store);
+					return;
+				}
+				Map<String, String> inventory = new HashMap<>();
+				config.getProduct().getInventoryMapping().forEach((k, v) -> inventory.put(v, productDoc.get(k)));
+				config.getStore().getInventoryMapping().forEach((k, v) -> inventory.put(v, storeDoc.get(k)));
+				inventory.put(ON_HAND, String.valueOf(onHands.nextInt()));
+				inventory.put(ALLOCATED, String.valueOf(allocateds.nextInt()));
+				inventory.put(RESERVED, String.valueOf(reserveds.nextInt()));
+				inventory.put(VIRTUAL_HOLD, String.valueOf(virtualHolds.nextInt()));
+				commands.add(config.getInventory().getIndex(), docId, 1.0, inventory, addOptions);
+			}
+
+		});
+		this.requests.add(new GeneratorRequest(ZonedDateTime.now(), storeSkus));
 	}
 
 }

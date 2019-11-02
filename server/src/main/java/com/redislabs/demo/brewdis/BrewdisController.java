@@ -1,6 +1,5 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.ADDED;
 import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
 import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
 import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
@@ -12,19 +11,11 @@ import static com.redislabs.demo.brewdis.Field.PRODUCT_NAME;
 import static com.redislabs.demo.brewdis.Field.STORE_ID;
 import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.geo.Point;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -83,7 +74,9 @@ class BrewdisController {
 	}
 
 	@PostMapping("/products")
-	public SearchResults<String, String> products(@RequestBody Query query, HttpSession session) {
+	public SearchResults<String, String> products(@RequestBody Query query,
+			@RequestParam(name = "longitude", required = true) Double longitude,
+			@RequestParam(name = "latitude", required = true) Double latitude) {
 		SearchOptionsBuilder options = SearchOptions.builder()
 				.highlight(HighlightOptions.builder().field(PRODUCT_NAME).field(PRODUCT_DESCRIPTION)
 						.field(CATEGORY_NAME).field(STYLE_NAME).field(BREWERY_NAME)
@@ -96,11 +89,10 @@ class BrewdisController {
 		String queryString = query.getQuery() == null || query.getQuery().length() == 0 ? "*" : query.getQuery();
 		SearchResults<String, String> results = connection.sync().search(config.getProduct().getIndex(), queryString,
 				options.build());
-		@SuppressWarnings("unchecked")
-		Set<String> cart = (Set<String>) session.getAttribute(config.getSession().getCartAttribute());
-		if (cart != null) {
-			results.forEach(r -> r.put(ADDED, String.valueOf(cart.contains(r.get(PRODUCT_ID)))));
-		}
+		List<String> skus = results.stream().map(r -> r.get(PRODUCT_ID)).collect(Collectors.toList());
+		List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
+				.stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
+		generator.add(stores, skus);
 		return results;
 	}
 
@@ -143,27 +135,16 @@ class BrewdisController {
 						.limit(Limit.builder().num(config.getInventory().getSearchLimit()).build()).build());
 	}
 
-	@SuppressWarnings("unchecked")
 	@GetMapping("/availability")
 	public SearchResults<String, String> availability(@RequestParam(name = "sku", required = false) String sku,
 			@RequestParam(name = "longitude", required = true) Double longitude,
-			@RequestParam(name = "latitude", required = true) Double latitude, HttpSession session) {
+			@RequestParam(name = "latitude", required = true) Double latitude) {
 		String query = geoCriteria(longitude, latitude);
-		List<String> skus = new ArrayList<>();
-		if (sku == null) {
-			Set<String> cart = (Set<String>) session.getAttribute(config.getSession().getCartAttribute());
-			if (cart != null) {
-				skus.addAll(cart);
-			}
-		} else {
-			skus.add(sku);
-		}
-		if (!skus.isEmpty()) {
-			query += " " + config.tag(PRODUCT_ID, String.join("|", skus));
+		if (sku != null) {
+			query += " " + config.tag(PRODUCT_ID, sku);
 		}
 		SearchResults<String, String> results = connection.sync().search(config.getInventory().getIndex(), query,
-				SearchOptions.builder()
-						.limit(Limit.builder().num(config.getInventory().getGenerator().getMaxStores()).build())
+				SearchOptions.builder().limit(Limit.builder().num(config.getInventory().getSearchLimit()).build())
 						.build());
 		results.forEach(r -> {
 			String atpString = r.get(AVAILABLE_TO_PROMISE);
@@ -174,30 +155,6 @@ class BrewdisController {
 			r.put(LEVEL, config.getInventory().level(availableToPromise));
 		});
 		return results;
-
-	}
-
-	@GetMapping("/cart")
-	@SuppressWarnings("unchecked")
-	public ResponseEntity<Void> addProduct(@RequestParam(name = "sku", required = false) String sku,
-			@RequestParam(name = "longitude", required = true) Double longitude,
-			@RequestParam(name = "latitude", required = true) Double latitude, HttpSession session) {
-		Set<String> cart = (Set<String>) session.getAttribute(config.getSession().getCartAttribute());
-		if (cart == null) {
-			cart = new LinkedHashSet<>();
-		}
-		cart.add(sku);
-		session.setAttribute(config.getSession().getCartAttribute(), cart);
-		Point coords = (Point) session.getAttribute(config.getSession().getCoordsAttribute());
-		if (coords == null) {
-			coords = new Point(longitude, latitude);
-			session.setAttribute(config.getSession().getCoordsAttribute(), coords);
-		}
-		List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
-				.stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
-		generator.add(stores.subList(0, Math.min(config.getInventory().getGenerator().getMaxStores(), stores.size())),
-				sku);
-		return new ResponseEntity<>(HttpStatus.OK);
 
 	}
 

@@ -81,7 +81,7 @@ public class DataLoader {
 		String index = config.getStore().getIndex();
 		try {
 			Info info = RediSearchUtils.getInfo(commands.ftInfo(index));
-			if (info.getNumDocs() > 3000) {
+			if (info.getNumDocs() >= config.getStore().getCount()) {
 				log.info("Found {} stores - skipping load", info.getNumDocs());
 				return;
 			}
@@ -134,7 +134,7 @@ public class DataLoader {
 		String index = config.getProduct().getIndex();
 		try {
 			Info info = RediSearchUtils.getInfo(commands.ftInfo(index));
-			if (info.getNumDocs() > 80000) {
+			if (info.getNumDocs() >= config.getProduct().getCount()) {
 				log.info("Found {} products - skipping load", info.getNumDocs());
 				return;
 			}

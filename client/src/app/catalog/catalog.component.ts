@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { SearchService, Query } from '../search.service';
@@ -6,7 +6,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   debounceTime, filter
 } from 'rxjs/operators';
-import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { DialogComponent } from './dialog/dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-catalog',
@@ -34,7 +35,7 @@ export class CatalogComponent implements OnInit {
   constructor(private searchService: SearchService, private route: ActivatedRoute, private router: Router, public dialog: MatDialog) { }
 
   openDescriptionDialog(product: any) {
-    this.dialog.open(DescriptionDialogComponent, {
+    this.dialog.open(DialogComponent, {
       data: product
     });
   }
@@ -90,12 +91,7 @@ export class CatalogComponent implements OnInit {
 
   search() {
     const queryObject: Query = { query: this.searchField.value, sortByField: this.sortByField, sortByDirection: this.sortByDirection };
-    this.results = this.searchService.products(queryObject);
-  }
-
-  addProduct(product: any) {
-    this.searchService.addProduct(product.sku, this.lng, this.lat);
-    product.added = true;
+    this.results = this.searchService.products(queryObject, this.lng, this.lat);
   }
 
   displayBrewery(brewery: any) {
@@ -106,12 +102,4 @@ export class CatalogComponent implements OnInit {
     this.addQueryCriteria('@brewery:{' + brewery.id + '}');
   }
 
-}
-
-@Component({
-  selector: 'app-description-dialog',
-  templateUrl: 'description-dialog.html',
-})
-export class DescriptionDialogComponent {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any) { }
 }

@@ -29,8 +29,11 @@ export class SearchService {
     return this.http.get(this.API_URL + 'categories');
   }
 
-  products(query: Query): Observable<any> {
-    return this.http.post(this.API_URL + 'products', query);
+  products(query: Query, lng: any, lat: any): Observable<any> {
+    let params = new HttpParams();
+    params = params.set('longitude', lng);
+    params = params.set('latitude', lat);
+    return this.http.post(this.API_URL + 'products', query, { params });
   }
 
   availability(sku: string, lng: any, lat: any) {
@@ -49,16 +52,6 @@ export class SearchService {
       params = params.set('store', store);
     }
     return this.http.get(this.API_URL + 'inventory', { params });
-  }
-
-  addProduct(sku: string, lng: any, lat: any) {
-    let params = new HttpParams();
-    if (sku != null) {
-      params = params.set('sku', sku);
-    }
-    params = params.set('longitude', lng);
-    params = params.set('latitude', lat);
-    this.http.get(this.API_URL + 'cart', { params }).subscribe();
   }
 
   suggestBreweries(prefix: string): Observable<any> {

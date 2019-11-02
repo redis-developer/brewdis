@@ -12,52 +12,13 @@
 }
 
 mat-card {
-	width: calc(100% - 40px);
-	height: calc(100% - 40px);
+	margin-bottom: 10px;
 }
 
-::ng-deep .mat-card-header-text {
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
+.mr-10 {
+	margin-right: 10px;
 }
 
-.product-card {
-	max-width: 400px;
-}
-
-.product-name {
-	text-overflow: ellipsis;
-	overflow: hidden;
-	white-space: nowrap;
-}
-
-.mat-card-content {
-	margin-bottom: 0px;
-}
-
-/* .mat-card-subtitle {
-	margin-bottom: 0px;
-} */
-
-.product-label {
-	margin-top: 0px;
-	/* margin-bottom: 0px; */
-}
-
-/* .product-detail {
-	position: relative;
-	display: inline-block;
-	padding: 0 8px;
-} */
-
-/* .button-overlay {
-	display: inline-block;
-	position: absolute;
-	right: 10px;
-	top: 35px;
-}*/
-
-.action-button {
-	margin-right: 5px;
+.ml-10 {
+	margin-left: 10px;
 }

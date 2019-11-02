@@ -36,6 +36,7 @@ public class BrewdisConfig {
 		private String index;
 		private String keyspace;
 		private String url;
+		private long count;
 		private Map<String, String> inventoryMapping = new HashMap<>();
 	}
 
@@ -47,6 +48,7 @@ public class BrewdisConfig {
 		private boolean brewerySuggestIndexFuzzy;
 		private String url;
 		private Map<String, String> inventoryMapping = new HashMap<>();
+		private long count;
 	}
 
 	@Data
@@ -102,7 +104,7 @@ public class BrewdisConfig {
 		private int virtualHoldMin;
 		private int virtualHoldMax;
 		private long requestDurationInMin;
-		private int maxStores;
+		private int storesPerSku;
 	}
 
 	@Data

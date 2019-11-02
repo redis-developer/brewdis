@@ -12,7 +12,7 @@
 				<mat-option *ngFor="let style of styles" [value]="style.id">{{style.name}}</mat-option>
 			</mat-select>
 		</mat-form-field>
-		<mat-form-field fxFlex="15" hintLabel="Type a few characters">
+		<mat-form-field fxFlex="25" hintLabel="Type a few characters">
 			<input matInput placeholder="Brewery" aria-label="Brewery" [matAutocomplete]="auto"
 				[formControl]="breweryField">
 			<mat-autocomplete #auto="matAutocomplete" [displayWith]="displayBrewery"
@@ -47,13 +47,13 @@
 				<mat-option value="120-inf">> 120</mat-option>
 			</mat-select>
 		</mat-form-field>
-		<mat-form-field fxFlex="10">
+		<!-- <mat-form-field fxFlex="10">
 			<mat-label>Label</mat-label>
 			<mat-select [formControl]="labelField">
 				<mat-option value="all">All</mat-option>
 				<mat-option value="required">Required</mat-option>
 			</mat-select>
-		</mat-form-field>
+		</mat-form-field> -->
 	</div>
 	<div fxLayout="row" fxLayoutAlign="space-evenly">
 		<mat-form-field hintLabel="Keywords to search for, e.g. hoppy" fxFlex="60">
@@ -76,32 +76,23 @@
 		<button mat-raised-button color="primary" type="submit" fxFlex="10" class="submit">Submit</button>
 	</div>
 </form>
-<br>
 
-<mat-grid-list cols="5" rowHeight="16:26">
-	<mat-grid-tile *ngFor="let product of results | async">
-		<mat-card class="product-card">
-			<mat-card-header>
-				<mat-card-title class="product-name" [innerHTML]="product.name"></mat-card-title>
-				<mat-card-subtitle [innerHTML]="product.breweryName"></mat-card-subtitle>
-			</mat-card-header>
-			<img mat-card-image class="product-label"
-				src="{{ product.hasOwnProperty('labels.medium') ? product['labels.medium'] : 'assets/brewdis.svg' }}"
-				alt="{{product.name}}">
-			<mat-card-content>
-				<p class="product-detail">ABV: {{product.abv}}% &nbsp; &nbsp; IBU: {{product.ibu}}</p>
-			</mat-card-content>
-			<mat-card-actions align="end">
-				<button mat-mini-fab (click)="openDescriptionDialog(product)" class="action-button">
-					<mat-icon>description</mat-icon>
-				</button>
-				<button mat-mini-fab [disabled]="product.added" (click)="addProduct(product)" class="action-button">
-					<mat-icon>playlist_add</mat-icon>
-				</button>
-				<button mat-mini-fab [routerLink]="['/availability', product.sku]">
-					<mat-icon>map</mat-icon>
-				</button>
-			</mat-card-actions>
-		</mat-card>
-	</mat-grid-tile>
-</mat-grid-list>
+<div fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap="10px" ngClass.gt-xs="ml-10">
+	<mat-card *ngFor="let product of results | async" fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)" fxFlex.gt-md="0 1 calc(25%-10px)">
+		<mat-card-header>
+			<mat-card-title [innerHTML]="product.name"></mat-card-title>
+			<mat-card-subtitle>
+				<span [innerHTML]="product.breweryName"></span>
+				<span> • </span>
+				<span>{{product.abv ? product.abv : '?'}}%</span>
+				<span> • </span>
+				<span>IBU: {{product.ibu ? product.ibu : '?'}}</span>
+			</mat-card-subtitle>
+		</mat-card-header>
+		<img mat-card-image src="{{ product.hasOwnProperty('labels.large') ? product['labels.large'] : 'assets/brewdis.svg' }}" class="image">
+		<mat-card-actions>
+			<button mat-raised-button (click)="openDescriptionDialog(product)" color="primary">Details</button>
+			<button mat-raised-button [routerLink]="['/availability', product.sku]" color="accent">Availability</button>
+		</mat-card-actions>
+	  </mat-card>	
+</div>
