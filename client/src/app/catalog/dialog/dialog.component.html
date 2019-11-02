@@ -1,0 +1,21 @@
+<h2 mat-dialog-title [innerHTML]="product.name"></h2>
+<div mat-dialog-content>
+    <div class="product-detail">
+        <span><strong>Brewery: </strong></span><span [innerHTML]="product.breweryName"></span>
+    </div>
+    <div class="product-detail">
+        <span><strong>Category: </strong></span><span [innerHTML]="product.categoryName"></span>
+    </div>
+    <div class="product-detail">
+        <span><strong>Style: </strong></span><span [innerHTML]="product.styleName"></span>
+    </div>
+    <div class="product-detail">
+        <span><strong>ABV: </strong></span><span>{{product.abv}}%</span>
+    </div>
+    <div class="product-detail">
+        <span><strong>IBU: </strong></span><span> </span><span>{{product.ibu}}</span>
+    </div>
+    <div class="product-detail">
+        <span><strong>Description: </strong></span><span [innerHTML]="product.description"></span>
+    </div>
+</div>
