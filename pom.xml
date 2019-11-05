@@ -145,12 +145,17 @@
 								<!-- As we are downloading reveal.js in runtime, it sits in a nonstandard 
 									folder `reveal.js-${revealjs.version}` -->
 								<revealjsdir>reveal.js-${revealjs.version}</revealjsdir>
-								<revealjs_theme>night</revealjs_theme>
+								<revealjs_plugin_pdf>enabled</revealjs_plugin_pdf>
+								<revealjs_theme>black</revealjs_theme>
+								<revealjs_history>true</revealjs_history>
+								<revealjs_fragmentInURL>true</revealjs_fragmentInURL>
+								<revealjs_controlsLayout>edges</revealjs_controlsLayout>
 								<!-- <revealjs_transition>linear</revealjs_transition> -->
 								<project-version>${project.version}</project-version>
 								<!-- can use any pygments/rouge css here -->
 								<!-- <rouge-css>class</rouge-css> -->
 								<!-- <customcss>styles/jrx.css</customcss> -->
+								
 							</attributes>
 						</configuration>
 					</execution>

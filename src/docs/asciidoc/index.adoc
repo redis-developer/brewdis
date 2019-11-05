@@ -47,10 +47,8 @@ ifndef::imagesdir[:imagesdir: images]
 == Inventory Challenges
 
 [%step]
-* Performance
 ** Volume
 ** Velocity
-* Accuracy
 ** Geo-Distribution
 
 [NOTE.speaker]
@@ -73,31 +71,30 @@ image::inventory-architecture.svg[]
 
 == Stores Index
 
-* Doc IDs: `store:<id>`
-* Fields:
-** `id`: tag field
-** `name`: text field
-** `location`: geo field
-** ...
-
+[%step]
+* `store:<id>`
+* `id`: tag field
+* `name`: text field
+* `location`: geo field
+* ...
 
 == Products Index
 
-* Doc IDs: `product:<sku>`
-* Fields:
-** `sku`: tag field
-** `name`: text field
-** ...
+[%step]
+* `product:<sku>`
+* `sku`: tag field
+* `name`: text field
+* ...
 
 == Inventory Index
 
-* Document IDs: `inventory:<store>:<sku>`
-* Fields:
-** `store`: tag field
-** `sku`: tag field
-** `location`: geo field
-** `availableToPromise`: numeric field
-** ...
+[%step]
+* `inventory:<store>:<sku>`
+* `store`: tag field
+* `sku`: tag field
+* `location`: geo field
+* `availableToPromise`: numeric field
+* ...
 
 == Demo Architecture
 
@@ -111,7 +108,7 @@ image::brewdis-architecture.svg[]
 == Inventory Manager
 
 [source,plaintext]
-====
+----
 XREAD STREAMS inventory-updates
 
 => FT.GET inventory inventory:7:B5
@@ -119,4 +116,22 @@ XREAD STREAMS inventory-updates
 => FT.ADD inventory inventory:7:B5 1.0 FIELDS atp 20 allocated 16
 
 => XADD inventory-stream * id 7:B5 atp 20 allocated 16
-====
+----
+
+== Querying Inventory
+
+Availability lookup
+
+`FT.GET inventory inventory:7:B5`
+
+== Querying Inventory
+
+Local availability
+
+`FT.SEARCH inventory "@location:{-118.2 34.0 10 mi}"`
+
+== Querying Inventory
+
+Regional availability levels
+
+`FT.AGGREGATE inventory "@sku:{02 93 13} @location:[-118.2 34.0 25 mi]" GROUPBY 1 @sku REDUCE SUM 1 @atp AS atp SORTBY 2 @atp DESC`
