@@ -110,7 +110,13 @@ image::brewdis-architecture.svg[]
 
 == Inventory Manager
 
-* `XREAD STREAMS inventory-updates`
-* `FT.GET inventory inventory:7:B5`
-* `FT.ADD inventory inventory:7:B5 1.0 FIELDS atp 20 allocated 16`
-* `XADD inventory-stream * id 7:B5 atp 20 allocated 16`
+[source,plaintext]
+====
+XREAD STREAMS inventory-updates
+
+=> FT.GET inventory inventory:7:B5
+
+=> FT.ADD inventory inventory:7:B5 1.0 FIELDS atp 20 allocated 16
+
+=> XADD inventory-stream * id 7:B5 atp 20 allocated 16
+====
