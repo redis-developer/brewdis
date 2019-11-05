@@ -73,7 +73,7 @@ public class InventoryGenerator implements InitializingBean {
 		this.reserveds = random.ints(generatorConfig.getReservedMin(), generatorConfig.getReservedMax()).iterator();
 		this.virtualHolds = random.ints(generatorConfig.getVirtualHoldMin(), generatorConfig.getVirtualHoldMax())
 				.iterator();
-		redis.delete(config.getInventory().getGenerator().getStream());
+		redis.delete(config.getInventory().getUpdateStream());
 	}
 
 	@Scheduled(fixedRateString = "${inventory.generator.rate}")
@@ -85,7 +85,7 @@ public class InventoryGenerator implements InitializingBean {
 				update.put(STORE_ID, s.getStore());
 				update.put(PRODUCT_ID, s.getSku());
 				update.put(ALLOCATED, String.valueOf(deltas.nextInt()));
-				redis.opsForStream().add(config.getInventory().getGenerator().getStream(), update);
+				redis.opsForStream().add(config.getInventory().getUpdateStream(), update);
 			});
 		}
 	}

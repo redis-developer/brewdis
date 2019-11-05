@@ -78,7 +78,7 @@ Here are the most common configuration properties:
 
 {empty} +
 
-image::https://redislabs-solution-architects.github.io/brewdis/architecture.svg[Brewdis]
+image::https://redislabs-solution-architects.github.io/brewdis/brewdis-architecture.svg[Brewdis]
 
 {empty} +
 

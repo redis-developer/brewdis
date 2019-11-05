@@ -85,7 +85,7 @@ public class InventoryManager
 				.field(NumericField.builder().name(VIRTUAL_HOLD).sortable(true).build())
 				.field(NumericField.builder().name(EPOCH).sortable(true).build()).build();
 		commands.create(index, schema);
-		String stream = config.getInventory().getGenerator().getStream();
+		String stream = config.getInventory().getUpdateStream();
 		redis.delete(stream);
 		this.container = StreamMessageListenerContainer.create(redis.getConnectionFactory(),
 				StreamMessageListenerContainerOptions.builder()
@@ -171,7 +171,7 @@ public class InventoryManager
 		if (results.size() > 0) {
 			log.info("Deleted {} docs from {} index", results.size(), config.getInventory().getIndex());
 		}
-		redis.opsForStream().trim(config.getInventory().getGenerator().getStream(),
+		redis.opsForStream().trim(config.getInventory().getUpdateStream(),
 				config.getInventory().getCleanup().getStreamTrimCount());
 		redis.opsForStream().trim(config.getInventory().getStream(),
 				config.getInventory().getCleanup().getStreamTrimCount());

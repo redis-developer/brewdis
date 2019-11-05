@@ -53,6 +53,7 @@ public class BrewdisConfig {
 
 	@Data
 	public static class InventoryConfig {
+		private String updateStream;
 		private String stream;
 		private String index;
 		private String keyspace;
@@ -92,7 +93,6 @@ public class BrewdisConfig {
 
 	@Data
 	public static class InventoryGeneratorConfig {
-		private String stream;
 		private int onHandMin;
 		private int onHandMax;
 		private int deltaMin;
