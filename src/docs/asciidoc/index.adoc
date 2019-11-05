@@ -58,7 +58,7 @@ ifndef::imagesdir[:imagesdir: images]
 * Geo-Distribution: maintain consistency between store(s) and data centers
 --
 
-== Real-Time Inventory Architecture
+== Architecture
 
 image::inventory-architecture.svg[]
 
