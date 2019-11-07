@@ -1,6 +1,6 @@
 .search-form {
 	display: flex;
-	justify-content: space-evenly;
+	justify-content: stretch;
 }
 
 .submit {
@@ -12,8 +12,16 @@
 	margin-right: 8px;
 }
 
+.paginator {
+	justify-content: space-between;
+}
+
 mat-card {
 	margin-bottom: 10px;
+}
+
+.mat-card-actions {
+	justify-content: space-between;
 }
 
 .mr-10 {

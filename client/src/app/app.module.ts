@@ -8,7 +8,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import {MatDialogModule} from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 import {
   MatButtonModule, MatIconModule, MatCardModule,
@@ -54,7 +55,8 @@ import { MaterialModule } from './material.module';
     MatTableModule,
     MatSortModule,
     MatButtonToggleModule,
-    MatDialogModule
+    MatDialogModule,
+    MatPaginatorModule
   ],
   providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
   bootstrap: [AppComponent]

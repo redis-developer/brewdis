@@ -8,6 +8,7 @@ import {
 } from 'rxjs/operators';
 import { DialogComponent } from './dialog/dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-catalog',
@@ -31,6 +32,9 @@ export class CatalogComponent implements OnInit {
   results: Observable<any>;
   lat = 34.0030;
   lng = -118.4298;
+  length: number;
+  pageIndex: number;
+  pageSize: number;
 
   constructor(private searchService: SearchService, private route: ActivatedRoute, private router: Router, public dialog: MatDialog) { }
 
@@ -50,6 +54,9 @@ export class CatalogComponent implements OnInit {
     this.labelField.setValue('all');
     this.searchField = new FormControl();
     this.searchField.setValue('');
+    this.length = 0;
+    this.pageIndex = 0;
+    this.pageSize = 50;
     this.categoryField.valueChanges.subscribe(
       (category: string) => this.searchService.styles(category).subscribe(
         data => this.styles = data
@@ -89,9 +96,16 @@ export class CatalogComponent implements OnInit {
     this.searchField.setValue(query + criteria);
   }
 
-  search() {
-    const queryObject: Query = { query: this.searchField.value, sortByField: this.sortByField, sortByDirection: this.sortByDirection };
+  search(limitOffset: number, limitNum: number) {
+    const queryObject: Query = { query: this.searchField.value, sortByField: this.sortByField, sortByDirection: this.sortByDirection, offset: limitOffset, limit: limitNum };
     this.results = this.searchService.products(queryObject, this.lng, this.lat);
+    this.results.subscribe(results => this.length = results.count);
+  }
+
+  public handlePage(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.search(this.pageIndex * this.pageSize, this.pageSize);
   }
 
   displayBrewery(brewery: any) {

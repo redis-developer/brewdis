@@ -6,6 +6,8 @@ export interface Query {
   query: string;
   sortByField: string;
   sortByDirection: string;
+  offset: number;
+  limit: number;
 }
 
 @Injectable({
