@@ -97,7 +97,13 @@ export class CatalogComponent implements OnInit {
   }
 
   search(limitOffset: number, limitNum: number) {
-    const queryObject: Query = { query: this.searchField.value, sortByField: this.sortByField, sortByDirection: this.sortByDirection, offset: limitOffset, limit: limitNum };
+    const queryObject: Query = {
+      query: this.searchField.value,
+      sortByField: this.sortByField,
+      sortByDirection: this.sortByDirection,
+      offset: limitOffset,
+      limit: limitNum
+    };
     this.results = this.searchService.products(queryObject, this.lng, this.lat);
     this.results.subscribe(results => this.length = results.count);
   }
