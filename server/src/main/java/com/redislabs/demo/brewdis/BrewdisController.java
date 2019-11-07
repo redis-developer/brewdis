@@ -65,40 +65,51 @@ class BrewdisController {
 		return config.getStomp();
 	}
 
-	@Data
-	public static class Query {
+	public static @Data class Query {
 		private String query = "*";
 		private String sortByField;
 		private String sortByDirection = "Ascending";
 		private long limit = 100;
+		private long offset = 0;
+	}
+
+	public static @Data class TimedSearchResults {
+		private long count;
+		private SearchResults<String, String> results;
+		private float duration;
 	}
 
 	@PostMapping("/products")
-	public SearchResults<String, String> products(@RequestBody Query query,
+	public TimedSearchResults products(@RequestBody Query query,
 			@RequestParam(name = "longitude", required = true) Double longitude,
 			@RequestParam(name = "latitude", required = true) Double latitude) {
 		SearchOptionsBuilder options = SearchOptions.builder()
 				.highlight(HighlightOptions.builder().field(PRODUCT_NAME).field(PRODUCT_DESCRIPTION)
 						.field(CATEGORY_NAME).field(STYLE_NAME).field(BREWERY_NAME)
 						.tags(TagOptions.builder().open("<mark>").close("</mark>").build()).build())
-				.limit(Limit.builder().num(query.getLimit()).build());
+				.limit(Limit.builder().offset(query.getOffset()).num(query.getLimit()).build());
 		if (query.getSortByField() != null) {
 			options.sortBy(SortBy.builder().field(query.getSortByField())
 					.direction(Direction.valueOf(query.getSortByDirection())).build());
 		}
 		String queryString = query.getQuery() == null || query.getQuery().length() == 0 ? "*" : query.getQuery();
+		long startTime = System.currentTimeMillis();
 		SearchResults<String, String> results = connection.sync().search(config.getProduct().getIndex(), queryString,
 				options.build());
+		long endTime = System.currentTimeMillis();
 		List<String> skus = results.stream().map(r -> r.get(PRODUCT_ID)).collect(Collectors.toList());
 		List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
 				.stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
 		generator.add(stores, skus);
-		return results;
+		TimedSearchResults resultsWithCount = new TimedSearchResults();
+		resultsWithCount.setCount(results.getCount());
+		resultsWithCount.setResults(results);
+		resultsWithCount.setDuration(((float) (endTime - startTime)) / 1000);
+		return resultsWithCount;
 	}
 
-	@Data
 	@Builder
-	public static class Style {
+	public static @Data class Style {
 
 		private String id;
 		private String name;
@@ -110,9 +121,8 @@ class BrewdisController {
 		return data.getStyles().get(category);
 	}
 
-	@Data
 	@Builder
-	public static class Category {
+	public static @Data class Category {
 
 		private String id;
 		private String name;
@@ -162,15 +172,13 @@ class BrewdisController {
 		return "@" + LOCATION + ":[" + longitude + " " + latitude + " " + config.getAvailabilityRadius() + "]";
 	}
 
-	@Data
-	public static class BrewerySuggestion {
+	public static @Data class BrewerySuggestion {
 		private String id;
 		private String name;
 		private String icon;
 	}
 
-	@Data
-	public static class BrewerySuggestionPayload {
+	public static @Data class BrewerySuggestionPayload {
 		private String id;
 		private String icon;
 	}

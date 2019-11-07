@@ -13,8 +13,7 @@ import lombok.Data;
 @Configuration
 @ConfigurationProperties(prefix = "")
 @EnableAutoConfiguration
-@Data
-public class BrewdisConfig {
+public @Data class BrewdisConfig {
 
 	private String keySeparator;
 	private long streamPollTimeout = 100;
@@ -25,14 +24,12 @@ public class BrewdisConfig {
 	private InventoryConfig inventory = new InventoryConfig();
 	private SessionConfig session = new SessionConfig();
 
-	@Data
-	public static class SessionConfig {
+	public static @Data class SessionConfig {
 		private String cartAttribute = "cart";
 		private String coordsAttribute = "coords";
 	}
 
-	@Data
-	public static class StoreConfig {
+	public static @Data class StoreConfig {
 		private String index;
 		private String keyspace;
 		private String url;
@@ -40,19 +37,22 @@ public class BrewdisConfig {
 		private Map<String, String> inventoryMapping = new HashMap<>();
 	}
 
-	@Data
-	public static class ProductConfig {
+	public static @Data class ProductConfig {
 		private String index;
 		private String keyspace;
 		private String brewerySuggestionIndex;
 		private boolean brewerySuggestIndexFuzzy;
 		private String url;
 		private Map<String, String> inventoryMapping = new HashMap<>();
-		private long count;
+		private ProductLoadConfig load = new ProductLoadConfig();
 	}
 
-	@Data
-	public static class InventoryConfig {
+	public static @Data class ProductLoadConfig {
+		private long count;
+		private Long sleep;
+	}
+
+	public static @Data class InventoryConfig {
 		private String updateStream;
 		private String stream;
 		private String index;
@@ -75,8 +75,7 @@ public class BrewdisConfig {
 		}
 	}
 
-	@Data
-	public static class InventoryRestockConfig {
+	public static @Data class InventoryRestockConfig {
 		private int delayMin;
 		private int delayMax;
 		private int threshold;
@@ -84,15 +83,13 @@ public class BrewdisConfig {
 		private int deltaMax;
 	}
 
-	@Data
-	public static class InventoryCleanupConfig {
+	public static @Data class InventoryCleanupConfig {
 		private int searchLimit;
 		private long ageThreshold;
 		private long streamTrimCount;
 	}
 
-	@Data
-	public static class InventoryGeneratorConfig {
+	public static @Data class InventoryGeneratorConfig {
 		private int onHandMin;
 		private int onHandMax;
 		private int deltaMin;
@@ -107,8 +104,7 @@ public class BrewdisConfig {
 		private int storesPerSku;
 	}
 
-	@Data
-	public static class StompConfig implements Serializable {
+	public static @Data class StompConfig implements Serializable {
 		private static final long serialVersionUID = -623741573410463326L;
 		private String protocol;
 		private String host;

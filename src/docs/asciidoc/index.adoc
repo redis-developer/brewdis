@@ -71,67 +71,111 @@ image::inventory-architecture.svg[]
 
 == Stores Index
 
-[%step]
-* `store:<id>`
-* `id`: tag field
-* `name`: text field
-* `location`: geo field
-* ...
+[source,plaintext]
+----
+FT.CREATE stores SCHEMA
+   store TAG SORTABLE
+   name TEXT
+   location GEO
+   market TAG SORTABLE
+   ...
+----
+
+[source,plaintext]
+----
+FT.ADD stores "store:<id>" 1.0 FIELDS ...
+---- 
 
 == Products Index
 
-[%step]
-* `product:<sku>`
-* `sku`: tag field
-* `name`: text field
-* ...
+[source,plaintext]
+----
+FT.CREATE products SCHEMA
+   sku TAG SORTABLE
+   name TEXT
+   description TEXT PHONETIC dm:en
+   ...
+----
+
+[source,plaintext]
+----
+FT.ADD products "product:<sku>" 1.0 FIELDS ...
+---- 
 
 == Inventory Index
 
-[%step]
-* `inventory:<store>:<sku>`
-* `store`: tag field
-* `sku`: tag field
-* `location`: geo field
-* `availableToPromise`: numeric field
-* ...
+[source,plaintext]
+----
+FT.CREATE inventory SCHEMA
+   store TAG SORTABLE
+   sku TAG SORTABLE
+   location GEO
+   availableToPromise NUMERIC SORTABLE
+   ...
+----
+
+[source,plaintext]
+----
+FT.ADD inventory "inventory:<store>:<sku>" 1.0 FIELDS ...
+----
 
 == Demo Architecture
 
 image::brewdis-architecture.svg[]
 
-
 == Inventory Generator
-
-`XADD inventory-update-stream * store 7 sku B5 allocated 4`
-
-== Inventory Manager
 
 [source,plaintext]
 ----
+XADD inventory-update-stream * store 7 sku B5 allocated 4
+----
+
+== Inventory Manager
+
+[%step]
+[source,plaintext]
+----
 XREAD STREAMS inventory-updates
-
-=> FT.GET inventory inventory:7:B5
-
-=> FT.ADD inventory inventory:7:B5 1.0 FIELDS atp 20 allocated 16
-
-=> XADD inventory-stream * id 7:B5 atp 20 allocated 16
+----
+[source,plaintext]
+----
+FT.GET inventory inventory:7:B5
+----
+[source,plaintext]
+----
+FT.ADD inventory inventory:7:B5 1.0 FIELDS atp 20 allocated 16
+----
+[source,plaintext]
+----
+XADD inventory-stream * id 7:B5 atp 20 allocated 16
 ----
 
 == Querying Inventory
 
 Availability lookup
 
-`FT.GET inventory inventory:7:B5`
+[source,plaintext]
+----
+FT.GET inventory inventory:7:B5
+----
 
 == Querying Inventory
 
 Local availability
 
-`FT.SEARCH inventory "@location:{-118.2 34.0 10 mi}"`
+[source,plaintext]
+----
+FT.SEARCH inventory "@location:{-118.2 34.0 10 mi}"
+----
 
 == Querying Inventory
 
 Regional availability levels
 
-`FT.AGGREGATE inventory "@sku:{02 93 13} @location:[-118.2 34.0 25 mi]" GROUPBY 1 @sku REDUCE SUM 1 @atp AS atp SORTBY 2 @atp DESC`
+[source,plaintext]
+----
+FT.AGGREGATE inventory
+   "@sku:{02 93 13} @location:[-118.2 34.0 25 mi]"
+   GROUPBY 1 @sku REDUCE SUM 1 @atp AS atp
+   SORTBY 2 @atp DESC
+----

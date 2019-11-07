@@ -45,6 +45,7 @@ import com.redislabs.lettusearch.search.field.PhoneticMatcher;
 import com.redislabs.lettusearch.search.field.TagField;
 import com.redislabs.lettusearch.search.field.TextField;
 import com.redislabs.riot.cli.ProcessorOptions;
+import com.redislabs.riot.cli.TransferOptions;
 import com.redislabs.riot.cli.file.FileImportCommand;
 import com.redislabs.riot.cli.file.FileReaderOptions;
 import com.redislabs.riot.cli.redis.KeyOptions;
@@ -134,7 +135,7 @@ public class DataLoader {
 		String index = config.getProduct().getIndex();
 		try {
 			Info info = RediSearchUtils.getInfo(commands.ftInfo(index));
-			if (info.getNumDocs() >= config.getProduct().getCount()) {
+			if (info.getNumDocs() >= config.getProduct().getLoad().getCount()) {
 				log.info("Found {} products - skipping load", info.getNumDocs());
 				return;
 			}
@@ -159,6 +160,11 @@ public class DataLoader {
 				.field(NumericField.builder().name("ibu").sortable(true).build()).build();
 		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
+		TransferOptions transferOptions = new TransferOptions();
+		if (config.getProduct().getLoad().getSleep() != null) {
+			transferOptions.setSleep(config.getProduct().getLoad().getSleep());
+		}
+		command.setTransferOptions(transferOptions);
 		FileReaderOptions readerOptions = new FileReaderOptions();
 		readerOptions.setPath(config.getProduct().getUrl());
 		command.setFileReaderOptions(readerOptions);
