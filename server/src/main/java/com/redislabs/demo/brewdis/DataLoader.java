@@ -6,6 +6,7 @@ import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
 import static com.redislabs.demo.brewdis.Field.CATEGORY_ID;
 import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
 import static com.redislabs.demo.brewdis.Field.COUNT;
+import static com.redislabs.demo.brewdis.Field.FOOD_PAIRINGS;
 import static com.redislabs.demo.brewdis.Field.LOCATION;
 import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
 import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
@@ -155,6 +156,7 @@ public class DataLoader {
 				.field(TextField.builder().name(STYLE_NAME).build())
 				.field(TagField.builder().name(BREWERY_ID).sortable(true).build())
 				.field(TextField.builder().name(BREWERY_NAME).build())
+				.field(TextField.builder().name(FOOD_PAIRINGS).sortable(true).build())
 				.field(TagField.builder().name("isOrganic").sortable(true).build())
 				.field(NumericField.builder().name("abv").sortable(true).build())
 				.field(NumericField.builder().name("ibu").sortable(true).build()).build();
@@ -257,5 +259,20 @@ public class DataLoader {
 			commands.sugadd(config.getProduct().getBrewerySuggestionIndex(), breweryName, count, payload);
 		});
 	}
+
+//	private void loadFoodPairings() {
+//		log.info("Loading food pairings");
+//		RediSearchCommands<String, String> commands = connection.sync();
+//		String index = config.getProduct().getIndex();
+//		AggregateResults<String, String> results = commands.aggregate(index, "*", AggregateOptions.builder()
+//				.operation(Apply.builder().expression("split(@" + FOOD_PAIRINGS + ")").as(FOOD_PAIRINGS).build())
+//				.operation(Group.builder().property(FOOD_PAIRINGS)
+//						.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+//				.operation(Sort.builder().property(SortProperty.builder().property(COUNT).order(Order.Desc).build())
+//						.build())
+//				.operation(Limit.builder().num(config.getProduct().getFoodsLimit()).build()).build());
+//		this.foodPairings = results.stream().map(r -> r.get(FOOD_PAIRINGS)).collect(Collectors.toList());
+//		log.info("Loaded food pairings: {}", foodPairings);
+//	}
 
 }

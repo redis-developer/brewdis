@@ -31,6 +31,10 @@ export class SearchService {
     return this.http.get(this.API_URL + 'categories');
   }
 
+  foods(): Observable<any> {
+    return this.http.get(this.API_URL + 'foods');
+  }
+
   products(query: Query, lng: any, lat: any): Observable<any> {
     let params = new HttpParams();
     params = params.set('longitude', lng);

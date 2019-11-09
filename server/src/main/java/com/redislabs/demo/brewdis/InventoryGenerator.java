@@ -37,9 +37,15 @@ public class InventoryGenerator implements InitializingBean {
 
 	@Data
 	@AllArgsConstructor
-	public static class GeneratorRequest {
+	public class GeneratorRequest {
 		private ZonedDateTime time;
+		private String requester;
 		private List<StoreSku> storeSkus = new ArrayList<>();
+
+		public boolean isExpired() {
+			long ageInMinutes = ChronoUnit.MINUTES.between(time, ZonedDateTime.now());
+			return ageInMinutes > config.getInventory().getGenerator().getRequestDurationInMin();
+		}
 	}
 
 	@Data
@@ -93,22 +99,11 @@ public class InventoryGenerator implements InitializingBean {
 	@Scheduled(fixedRate = 60000)
 	public void pruneRequests() {
 		synchronized (requests) {
-			ZonedDateTime now = ZonedDateTime.now();
-			List<GeneratorRequest> expired = new ArrayList<>();
-			requests.forEach(r -> {
-				long ageInMinutes = ChronoUnit.MINUTES.between(r.getTime(), now);
-				if (ageInMinutes > config.getInventory().getGenerator().getRequestDurationInMin()) {
-					expired.add(r);
-				}
-			});
-			if (!requests.isEmpty()) {
-				log.info("Removing generator requests: {}", expired);
-				requests.removeAll(expired);
-			}
+			requests.removeIf(r -> r.isExpired());
 		}
 	}
 
-	public void add(List<String> stores, List<String> skus) {
+	public void add(String requester, List<String> stores, List<String> skus) {
 		if (stores.isEmpty()) {
 			return;
 		}
@@ -153,7 +148,10 @@ public class InventoryGenerator implements InitializingBean {
 			}
 
 		});
-		this.requests.add(new GeneratorRequest(ZonedDateTime.now(), storeSkus));
+		synchronized (requests) {
+			requests.removeIf(r -> r.requester.equals(requester));
+			this.requests.add(new GeneratorRequest(ZonedDateTime.now(), requester, storeSkus));
+		}
 	}
 
 }

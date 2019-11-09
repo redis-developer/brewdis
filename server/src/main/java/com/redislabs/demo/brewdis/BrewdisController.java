@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,7 +84,7 @@ class BrewdisController {
 	@PostMapping("/products")
 	public TimedSearchResults products(@RequestBody Query query,
 			@RequestParam(name = "longitude", required = true) Double longitude,
-			@RequestParam(name = "latitude", required = true) Double latitude) {
+			@RequestParam(name = "latitude", required = true) Double latitude, HttpSession session) {
 		SearchOptionsBuilder options = SearchOptions.builder()
 				.highlight(HighlightOptions.builder().field(PRODUCT_NAME).field(PRODUCT_DESCRIPTION)
 						.field(CATEGORY_NAME).field(STYLE_NAME).field(BREWERY_NAME)
@@ -100,7 +102,7 @@ class BrewdisController {
 		List<String> skus = results.stream().map(r -> r.get(PRODUCT_ID)).collect(Collectors.toList());
 		List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
 				.stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
-		generator.add(stores, skus);
+		generator.add(session.getId(), stores, skus);
 		TimedSearchResults resultsWithCount = new TimedSearchResults();
 		resultsWithCount.setCount(results.getCount());
 		resultsWithCount.setResults(results);

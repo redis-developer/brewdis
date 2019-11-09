@@ -86,19 +86,17 @@
 <div *ngIf="(results | async) as results">
 	<div fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap="10px" ngClass.gt-xs="ml-10">
 		<mat-card *ngFor="let product of results.results" fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)"
-			fxFlex.gt-md="0 1 calc(25%-10px)">
-			<mat-card-header>
-				<mat-card-title [innerHTML]="product.name"></mat-card-title>
-				<mat-card-subtitle>
-					<span [innerHTML]="product.breweryName"></span>
-					<span> • </span>
-					<span>{{product.abv ? product.abv : '?'}}%</span>
-					<span> • </span>
-					<span>IBU: {{product.ibu ? product.ibu : '?'}}</span>
-				</mat-card-subtitle>
-			</mat-card-header>
+			fxFlex.gt-md="0 1 calc(20%-10px)">
+			<mat-card-title [innerHTML]="product.name"></mat-card-title>
+			<mat-card-subtitle>
+				<span [innerHTML]="product.breweryName"></span>
+				<span> • </span>
+				<span>{{product.abv ? product.abv : '?'}}%</span>
+				<span> • </span>
+				<span>IBU: {{product.ibu ? product.ibu : '?'}}</span>
+			</mat-card-subtitle>
 			<img mat-card-image
-				src="{{ product.hasOwnProperty('labels.large') ? product['labels.large'] : 'assets/brewdis.svg' }}"
+				src="{{ product.hasOwnProperty('labels.medium') ? product['labels.medium'] : 'assets/brewdis.svg' }}"
 				class="image">
 			<mat-card-actions>
 				<button mat-button (click)="openDescriptionDialog(product)" color="basic">Details</button>

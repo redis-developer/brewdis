@@ -13,11 +13,20 @@
 }
 
 .paginator {
-	justify-content: space-between;
+	justify-content: left;
+}
+
+.mat-paginator {
+	background: #fafafa;
 }
 
 mat-card {
 	margin-bottom: 10px;
+	max-width: 400px;
+}
+
+.mat-card-title {
+	font-size: .9em;
 }
 
 .mat-card-actions {

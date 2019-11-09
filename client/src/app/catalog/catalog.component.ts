@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { SearchService, Query } from '../search.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
-  debounceTime, filter
+  debounceTime, filter, map, startWith
 } from 'rxjs/operators';
 import { DialogComponent } from './dialog/dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,24 +17,24 @@ import { PageEvent } from '@angular/material/paginator';
 })
 export class CatalogComponent implements OnInit {
   API_URL = '/api/';
-  categories = [];
-  styles = [];
   breweries: Observable<any>;
   sortByField = 'name';
   sortByDirection = 'Ascending';
-  categoryField: FormControl;
-  styleField: FormControl;
-  breweryField: FormControl;
-  abvField: FormControl;
-  ibuField: FormControl;
-  labelField: FormControl;
-  searchField: FormControl;
+  categoryField = new FormControl();
+  categories = [];
+  styleField = new FormControl();
+  styles = [];
+  breweryField = new FormControl();
+  abvField = new FormControl();
+  ibuField = new FormControl();
+  labelField = new FormControl();
+  searchField = new FormControl();
   results: Observable<any>;
   lat = 34.0030;
   lng = -118.4298;
-  length: number;
-  pageIndex: number;
-  pageSize: number;
+  length = 0;
+  pageIndex = 0;
+  pageSize = 50;
 
   constructor(private searchService: SearchService, private route: ActivatedRoute, private router: Router, public dialog: MatDialog) { }
 
@@ -45,18 +45,8 @@ export class CatalogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.categoryField = new FormControl();
-    this.styleField = new FormControl();
-    this.breweryField = new FormControl();
-    this.abvField = new FormControl();
-    this.ibuField = new FormControl();
-    this.labelField = new FormControl();
     this.labelField.setValue('all');
-    this.searchField = new FormControl();
     this.searchField.setValue('');
-    this.length = 0;
-    this.pageIndex = 0;
-    this.pageSize = 50;
     this.categoryField.valueChanges.subscribe(
       (category: string) => this.searchService.styles(category).subscribe(
         data => this.styles = data

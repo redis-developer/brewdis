@@ -13,6 +13,7 @@ public class Field {
 	public static final String COUNT = "count";
 	public static final String DELTA = "delta";
 	public static final String EPOCH = "epoch";
+	public static final String FOOD_PAIRINGS = "foodPairings";
 	public static final String PRODUCT_LABEL = "label";
 	public static final String LEVEL = "level";
 	public static final String LOCATION = "location";
