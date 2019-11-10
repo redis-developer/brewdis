@@ -29,6 +29,7 @@ export class CatalogComponent implements OnInit {
   ibuField = new FormControl();
   labelField = new FormControl();
   searchField = new FormControl();
+  foodField = new FormControl();
   results: Observable<any>;
   lat = 34.0030;
   lng = -118.4298;

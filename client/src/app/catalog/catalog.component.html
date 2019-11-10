@@ -39,18 +39,22 @@
 		<mat-form-field fxFlex.sm="0 1 calc(33%-10px)" fxFlex.md="0 1 calc(25%-10px)" fxFlex.gt-md="0 1 calc(8%-10px)">
 			<mat-label>IBU</mat-label>
 			<mat-select [formControl]="ibuField">
-				<mat-option value="0-10">0 - 10</mat-option>
-				<mat-option value="10-20">10 - 20</mat-option>
-				<mat-option value="20-30">20 - 30</mat-option>
-				<mat-option value="30-50">30 - 50</mat-option>
-				<mat-option value="50-90">50 - 90</mat-option>
+				<mat-option value="0-30">0 - 30</mat-option>
+				<mat-option value="30-60">30 - 60</mat-option>
+				<mat-option value="60-90">60 - 90</mat-option>
 				<mat-option value="90-120">90 - 120</mat-option>
 				<mat-option value="120-inf">> 120</mat-option>
 			</mat-select>
 		</mat-form-field>
+		<mat-form-field fxFlex.sm="0 1 calc(33%-10px)" fxFlex.md="0 1 calc(25%-10px)" fxFlex.gt-md="0 1 calc(8%-10px)">
+			<input matInput placeholder="Food pairing" [formControl]="foodField">
+		</mat-form-field>
 		<mat-form-field hintLabel="RediSearch query" fxFlex.sm="0 1 calc(100%-10px)" fxFlex.md="0 1 calc(80%-10px)"
 			fxFlex.gt-md="0 1 calc(60%-10px)">
 			<input matInput placeholder="Query" [formControl]="searchField">
+			<button mat-button *ngIf="searchField.value" matSuffix mat-icon-button aria-label="Clear" (click)="searchField.setValue('')">
+				<mat-icon>close</mat-icon>
+			</button>
 		</mat-form-field>
 		<mat-form-field fxFlex.sm="0 1 calc(25%-10px)" fxFlex.md="0 1 calc(10%-10px)" fxFlex.gt-md="0 1 calc(5%-10px)">
 			<mat-label>Sort by</mat-label>
