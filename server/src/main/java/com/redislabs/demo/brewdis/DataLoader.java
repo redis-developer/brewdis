@@ -16,10 +16,11 @@ import static com.redislabs.demo.brewdis.Field.STORE_ID;
 import static com.redislabs.demo.brewdis.Field.STYLE_ID;
 import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -31,6 +32,8 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -74,6 +77,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DataLoader implements InitializingBean {
 
+	@Value("classpath:english_stopwords.txt")
+	private Resource stopwordsResource;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired
@@ -86,7 +91,9 @@ public class DataLoader implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.stopwords = Files.readAllLines(Paths.get(ClassLoader.getSystemResource("english_stopwords.txt").toURI()));
+		this.stopwords = new BufferedReader(
+				new InputStreamReader(stopwordsResource.getInputStream(), StandardCharsets.UTF_8)).lines()
+						.collect(Collectors.toList());
 	}
 
 	public void execute() throws IOException, URISyntaxException {

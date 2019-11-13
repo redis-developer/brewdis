@@ -155,7 +155,7 @@
 								<!-- can use any pygments/rouge css here -->
 								<!-- <rouge-css>class</rouge-css> -->
 								<!-- <customcss>styles/jrx.css</customcss> -->
-								
+
 							</attributes>
 						</configuration>
 					</execution>
