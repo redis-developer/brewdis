@@ -95,8 +95,8 @@ export class CatalogComponent implements OnInit {
       query: this.searchField.value,
       sortByField: this.sortByField,
       sortByDirection: this.sortByDirection,
-      pageIndex: pageIndex,
-      pageSize: pageSize
+      pageIndex,
+      pageSize
     };
     this.result$ = this.searchService.products(queryObject, this.lng, this.lat).pipe(share());
   }
@@ -111,8 +111,8 @@ export class CatalogComponent implements OnInit {
 
   displayFood(food: any) {
     if (food) {
-      return food
-    };
+      return food;
+    }
   }
 
   brewerySelected(brewery: any) {
