@@ -103,14 +103,14 @@ TIP: `name`, `description`, `breweryName` are phonetic text fields so you will n
 . Refine the search by adding a constraint on the alcohol content (ABV field):
 +
 `@abv:[7 9]`
-. Change the sort-by field to `ABV`
-. Click the `+` button on a few beers to start generating inventory for those products
+. Change the sort-by field to `ABV` and click `Submit`
 
 === Availability
-. Click on the map button for one of these beers. It takes you to the availability map for that product
-. You can see stores that have that product. Stores in `green` have more than 20, `amber`: 10 to 20, `red`: less than 10
+. Click `Availability` on one of the search results. This takes you to the availability map for that product. 
+. The map shows stores near you where the selected product is currently available.
+. Stores in `green` have more than 20 in stock, `amber`: 10 to 20, `red`: less than 10
 
 === Inventory
-. Select a store and click on its name in the popup that shows up
-. This takes you to the real-tiome inventory for that store
-. The `Available to Promise` field is updated in real-time based on current difference between supply and demand.
+. Click on a store and then on the link that pops up 
+. This takes you to the real-time inventory for that store
+. The *Available to Promise* field is updated in real-time based on current difference between supply (*On Hand*) and demand (*Reserved + Allocated + Virtual Hold*).
