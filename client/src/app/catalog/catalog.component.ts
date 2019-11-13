@@ -120,7 +120,7 @@ export class CatalogComponent implements OnInit {
   }
 
   foodSelected(food: any) {
-    this.addQueryCriteria('@foodPairings:(' + food + ')');
+    this.addQueryCriteria('@foodPairings:("' + food + '")');
   }
 
 }
