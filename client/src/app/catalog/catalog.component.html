@@ -14,9 +14,9 @@
 		</mat-form-field>
 		<mat-form-field hintLabel="Type a few characters" fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)"
 			fxFlex.gt-md="0 1 calc(25%-10px)">
-			<input matInput placeholder="Brewery" aria-label="Brewery" [matAutocomplete]="auto"
+			<input matInput placeholder="Brewery" aria-label="Brewery" [matAutocomplete]="autoBrewery"
 				[formControl]="breweryField">
-			<mat-autocomplete #auto="matAutocomplete" [displayWith]="displayBrewery"
+			<mat-autocomplete #autoBrewery="matAutocomplete" [displayWith]="displayBrewery"
 				(optionSelected)='brewerySelected($event.option.value)'>
 				<mat-option *ngFor="let brewery of breweries" [value]="brewery">
 					<img class="brewery-img" aria-hidden [src]="brewery.icon" height="25">
@@ -46,13 +46,22 @@
 				<mat-option value="120-inf">> 120</mat-option>
 			</mat-select>
 		</mat-form-field>
-		<mat-form-field fxFlex.sm="0 1 calc(33%-10px)" fxFlex.md="0 1 calc(25%-10px)" fxFlex.gt-md="0 1 calc(8%-10px)">
-			<input matInput placeholder="Food pairing" [formControl]="foodField">
+		<mat-form-field hintLabel="Type a few characters" fxFlex.sm="0 1 calc(33%-10px)" fxFlex.md="0 1 calc(25%-10px)"
+			fxFlex.gt-md="0 1 calc(8%-10px)">
+			<input matInput placeholder="Food pairing" aria-label="Food" [matAutocomplete]="autoFood"
+				[formControl]="foodField">
+			<mat-autocomplete #autoFood="matAutocomplete" [displayWith]="displayFood"
+				(optionSelected)='foodSelected($event.option.value)'>
+				<mat-option *ngFor="let food of foods" [value]="food">
+					<span>{{food}}</span>
+				</mat-option>
+			</mat-autocomplete>
 		</mat-form-field>
-		<mat-form-field hintLabel="RediSearch query" fxFlex.sm="0 1 calc(100%-10px)" fxFlex.md="0 1 calc(80%-10px)"
-			fxFlex.gt-md="0 1 calc(60%-10px)">
+		<mat-form-field hintLabel="RediSearch query" fxFlex.sm="0 1 calc(100%-10px)" fxFlex.md="0 1 calc(50%-10px)"
+			fxFlex.gt-md="0 1 calc(30%-10px)">
 			<input matInput placeholder="Query" [formControl]="searchField">
-			<button mat-button *ngIf="searchField.value" matSuffix mat-icon-button aria-label="Clear" (click)="searchField.setValue('')">
+			<button mat-button *ngIf="searchField.value" matSuffix mat-icon-button aria-label="Clear"
+				(click)="searchField.setValue('')">
 				<mat-icon>close</mat-icon>
 			</button>
 		</mat-form-field>
@@ -74,20 +83,20 @@
 	</div>
 </form>
 
-<div fxLayout="row" class="paginator">
-	<mat-paginator [length]="length" [pageIndex]="pageIndex" [pageSize]="pageSize" [pageSizeOptions]="[10, 50, 100]"
-		(page)="handlePage($event)">
-	</mat-paginator>
-	<div class="mat-paginator">
-		<div class="mat-paginator-outer-container">
-			<div class="mat-paginator-container">
-				<div class="duration" *ngIf="results | async as results">{{results.duration | number}} seconds</div>
+<div *ngIf="result$ | async as results">
+	<div fxLayout="row" class="paginator">
+		<mat-paginator [length]="results.count" [pageIndex]="results.pageIndex" [pageSize]="results.pageSize"
+			[pageSizeOptions]="[10, 50, 100]" (page)="handlePage($event)">
+		</mat-paginator>
+		<div class="mat-paginator">
+			<div class="mat-paginator-outer-container">
+				<div class="mat-paginator-container">
+					<div class="duration">{{results.duration | number}} seconds</div>
+				</div>
 			</div>
 		</div>
 	</div>
-</div>
 
-<div *ngIf="(results | async) as results">
 	<div fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap="10px" ngClass.gt-xs="ml-10">
 		<mat-card *ngFor="let product of results.results" fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)"
 			fxFlex.gt-md="0 1 calc(20%-10px)">

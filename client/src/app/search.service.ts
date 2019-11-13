@@ -6,8 +6,8 @@ export interface Query {
   query: string;
   sortByField: string;
   sortByDirection: string;
-  offset: number;
-  limit: number;
+  pageIndex: number;
+  pageSize: number;
 }
 
 @Injectable({
@@ -65,7 +65,15 @@ export class SearchService {
     if (prefix != null) {
       params = params.set('prefix', prefix);
     }
-    return this.http.get(this.API_URL + 'breweries/suggest', { params });
+    return this.http.get(this.API_URL + 'breweries', { params });
+  }
+
+  suggestFoods(prefix: string): Observable<any> {
+    let params = new HttpParams();
+    if (prefix != null) {
+      params = params.set('prefix', prefix);
+    }
+    return this.http.get(this.API_URL + 'foods', { params });
   }
 
 }

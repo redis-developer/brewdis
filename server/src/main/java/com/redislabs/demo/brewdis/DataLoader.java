@@ -16,12 +16,20 @@ import static com.redislabs.demo.brewdis.Field.STORE_ID;
 import static com.redislabs.demo.brewdis.Field.STYLE_ID;
 import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +45,10 @@ import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.aggregate.AggregateOptions;
 import com.redislabs.lettusearch.aggregate.AggregateResults;
 import com.redislabs.lettusearch.aggregate.Group;
+import com.redislabs.lettusearch.aggregate.Limit;
+import com.redislabs.lettusearch.aggregate.Order;
+import com.redislabs.lettusearch.aggregate.Sort;
+import com.redislabs.lettusearch.aggregate.SortProperty;
 import com.redislabs.lettusearch.aggregate.reducer.CountDistinct;
 import com.redislabs.lettusearch.search.DropOptions;
 import com.redislabs.lettusearch.search.Schema;
@@ -60,7 +72,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class DataLoader {
+public class DataLoader implements InitializingBean {
 
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
@@ -70,12 +82,19 @@ public class DataLoader {
 	private List<Category> categories;
 	@Getter
 	private Map<String, List<Style>> styles = new HashMap<>();
+	private List<String> stopwords;
 
-	public void execute() {
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		this.stopwords = Files.readAllLines(Paths.get(ClassLoader.getSystemResource("english_stopwords.txt").toURI()));
+	}
+
+	public void execute() throws IOException, URISyntaxException {
 		loadStores();
 		loadProducts();
 		loadBreweries();
 		loadCategoriesAndStyles();
+		loadFoodPairings();
 	}
 
 	private void loadStores() {
@@ -226,7 +245,7 @@ public class DataLoader {
 	private void loadBreweries() {
 		RediSearchCommands<String, String> commands = connection.sync();
 		try {
-			Long length = commands.suglen(config.getProduct().getBrewerySuggestionIndex());
+			Long length = commands.suglen(config.getProduct().getBrewery().getIndex());
 			if (length != null && length > 0) {
 				log.info("Found {} breweries - skipping load", length);
 				return;
@@ -256,23 +275,44 @@ public class DataLoader {
 				return;
 			}
 			double count = Double.parseDouble(r.get(COUNT));
-			commands.sugadd(config.getProduct().getBrewerySuggestionIndex(), breweryName, count, payload);
+			commands.sugadd(config.getProduct().getBrewery().getIndex(), breweryName, count, payload);
 		});
+		log.info("Loaded {} breweries", results.size());
 	}
 
-//	private void loadFoodPairings() {
-//		log.info("Loading food pairings");
-//		RediSearchCommands<String, String> commands = connection.sync();
-//		String index = config.getProduct().getIndex();
-//		AggregateResults<String, String> results = commands.aggregate(index, "*", AggregateOptions.builder()
-//				.operation(Apply.builder().expression("split(@" + FOOD_PAIRINGS + ")").as(FOOD_PAIRINGS).build())
-//				.operation(Group.builder().property(FOOD_PAIRINGS)
-//						.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
-//				.operation(Sort.builder().property(SortProperty.builder().property(COUNT).order(Order.Desc).build())
-//						.build())
-//				.operation(Limit.builder().num(config.getProduct().getFoodsLimit()).build()).build());
-//		this.foodPairings = results.stream().map(r -> r.get(FOOD_PAIRINGS)).collect(Collectors.toList());
-//		log.info("Loaded food pairings: {}", foodPairings);
-//	}
+	private void loadFoodPairings() throws IOException, URISyntaxException {
+		RediSearchCommands<String, String> commands = connection.sync();
+		commands.del(config.getProduct().getFoodPairings().getIndex());
+		log.info("Loading food pairings");
+		String index = config.getProduct().getIndex();
+		AggregateResults<String, String> results = commands.aggregate(index, "*", AggregateOptions.builder()
+				.operation(Group.builder().property(FOOD_PAIRINGS)
+						.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+				.operation(Sort.builder().property(SortProperty.builder().property(COUNT).order(Order.Desc).build())
+						.build())
+				.operation(Limit.builder().num(config.getProduct().getFoodPairings().getLimit()).build()).build());
+		results.forEach(r -> {
+			String foodPairings = r.get(FOOD_PAIRINGS);
+			if (foodPairings == null || foodPairings.isEmpty() || foodPairings.isBlank()) {
+				return;
+			}
+			Arrays.stream(foodPairings.split("[,\\n]")).map(s -> clean(s)).filter(s -> s.split(" ").length <= 2)
+					.forEach(food -> {
+						commands.sugadd(config.getProduct().getFoodPairings().getIndex(), food, 1.0, true);
+					});
+		});
+		log.info("Loaded {} food pairings", results.size());
+	}
+
+	private String clean(String food) {
+		List<String> allWords = Stream.of(food.toLowerCase().split(" "))
+				.collect(Collectors.toCollection(ArrayList<String>::new));
+		allWords.removeAll(stopwords);
+		String result = allWords.stream().collect(Collectors.joining(" ")).trim();
+		if (result.endsWith(".")) {
+			result = result.substring(0, result.length() - 1);
+		}
+		return result;
+	}
 
 }

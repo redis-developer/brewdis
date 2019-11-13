@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { SearchService, Query } from '../search.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
-  debounceTime, filter, map, startWith
+  debounceTime, filter, share
 } from 'rxjs/operators';
 import { DialogComponent } from './dialog/dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -18,6 +18,7 @@ import { PageEvent } from '@angular/material/paginator';
 export class CatalogComponent implements OnInit {
   API_URL = '/api/';
   breweries: Observable<any>;
+  foods: Observable<any>;
   sortByField = 'name';
   sortByDirection = 'Ascending';
   categoryField = new FormControl();
@@ -27,13 +28,12 @@ export class CatalogComponent implements OnInit {
   breweryField = new FormControl();
   abvField = new FormControl();
   ibuField = new FormControl();
+  foodField = new FormControl();
   labelField = new FormControl();
   searchField = new FormControl();
-  foodField = new FormControl();
-  results: Observable<any>;
+  result$: Observable<any> = null;
   lat = 34.0030;
   lng = -118.4298;
-  length = 0;
   pageIndex = 0;
   pageSize = 50;
 
@@ -68,6 +68,9 @@ export class CatalogComponent implements OnInit {
     this.ibuField.valueChanges.subscribe(
       (ibu: string) => this.addQueryCriteria('@ibu:[' + ibu.replace('-', ' ') + ']')
     );
+    this.foodField.valueChanges.pipe(
+      debounceTime(300)
+    ).subscribe(prefix => this.searchService.suggestFoods(prefix).subscribe(data => this.foods = data));
     this.labelField.valueChanges.pipe(filter((label: string) => label === 'required')).subscribe(
       (label: string) => this.addQueryCriteria('@label:{true}')
     );
@@ -87,30 +90,37 @@ export class CatalogComponent implements OnInit {
     this.searchField.setValue(query + criteria);
   }
 
-  search(limitOffset: number, limitNum: number) {
+  search(pageIndex: number, pageSize: number) {
     const queryObject: Query = {
       query: this.searchField.value,
       sortByField: this.sortByField,
       sortByDirection: this.sortByDirection,
-      offset: limitOffset,
-      limit: limitNum
+      pageIndex: pageIndex,
+      pageSize: pageSize
     };
-    this.results = this.searchService.products(queryObject, this.lng, this.lat);
-    this.results.subscribe(results => this.length = results.count);
+    this.result$ = this.searchService.products(queryObject, this.lng, this.lat).pipe(share());
   }
 
   public handlePage(event: PageEvent) {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.search(this.pageIndex * this.pageSize, this.pageSize);
+    this.search(event.pageIndex, event.pageSize);
   }
 
   displayBrewery(brewery: any) {
     if (brewery) { return brewery.name; }
   }
 
+  displayFood(food: any) {
+    if (food) {
+      return food
+    };
+  }
+
   brewerySelected(brewery: any) {
     this.addQueryCriteria('@brewery:{' + brewery.id + '}');
+  }
+
+  foodSelected(food: any) {
+    this.addQueryCriteria('@foodPairings:(' + food + ')');
   }
 
 }

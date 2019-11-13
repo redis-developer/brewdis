@@ -40,11 +40,22 @@ public @Data class BrewdisConfig {
 	public static @Data class ProductConfig {
 		private String index;
 		private String keyspace;
-		private String brewerySuggestionIndex;
-		private boolean brewerySuggestIndexFuzzy;
 		private String url;
 		private Map<String, String> inventoryMapping = new HashMap<>();
 		private ProductLoadConfig load = new ProductLoadConfig();
+		private FoodPairingsConfig foodPairings = new FoodPairingsConfig();
+		private BreweryConfig brewery = new BreweryConfig();
+	}
+
+	public static @Data class BreweryConfig {
+		private String index;
+		private boolean fuzzy;
+	}
+
+	public static @Data class FoodPairingsConfig {
+		private long limit;
+		private String index;
+		private boolean fuzzy;
 	}
 
 	public static @Data class ProductLoadConfig {

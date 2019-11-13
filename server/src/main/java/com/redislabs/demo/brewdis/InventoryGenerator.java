@@ -110,7 +110,6 @@ public class InventoryGenerator implements InitializingBean {
 		if (skus.isEmpty()) {
 			return;
 		}
-		log.info("Adding stores {} and skus {}", stores, skus);
 		List<StoreSku> storeSkus = new ArrayList<>();
 		for (int index = 0; index < skus.size(); index++) {
 			String sku = skus.get(index);

@@ -42,11 +42,9 @@ import com.redislabs.lettusearch.suggest.SuggestResult;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping(path = "/api")
 @CrossOrigin
 @Slf4j
@@ -71,43 +69,52 @@ class BrewdisController {
 		private String query = "*";
 		private String sortByField;
 		private String sortByDirection = "Ascending";
-		private long limit = 100;
-		private long offset = 0;
+		private long pageIndex = 0;
+		private long pageSize = 100;
+
+		public long getOffset() {
+			return pageIndex * pageSize;
+		}
+
 	}
 
-	public static @Data class TimedSearchResults {
+	public static @Data class ResultsPage {
 		private long count;
 		private SearchResults<String, String> results;
 		private float duration;
+		private long pageIndex;
+		private long pageSize;
 	}
 
 	@PostMapping("/products")
-	public TimedSearchResults products(@RequestBody Query query,
+	public ResultsPage products(@RequestBody Query query,
 			@RequestParam(name = "longitude", required = true) Double longitude,
 			@RequestParam(name = "latitude", required = true) Double latitude, HttpSession session) {
 		SearchOptionsBuilder options = SearchOptions.builder()
 				.highlight(HighlightOptions.builder().field(PRODUCT_NAME).field(PRODUCT_DESCRIPTION)
 						.field(CATEGORY_NAME).field(STYLE_NAME).field(BREWERY_NAME)
 						.tags(TagOptions.builder().open("<mark>").close("</mark>").build()).build())
-				.limit(Limit.builder().offset(query.getOffset()).num(query.getLimit()).build());
+				.limit(Limit.builder().offset(query.getOffset()).num(query.getPageSize()).build());
 		if (query.getSortByField() != null) {
 			options.sortBy(SortBy.builder().field(query.getSortByField())
 					.direction(Direction.valueOf(query.getSortByDirection())).build());
 		}
 		String queryString = query.getQuery() == null || query.getQuery().length() == 0 ? "*" : query.getQuery();
 		long startTime = System.currentTimeMillis();
-		SearchResults<String, String> results = connection.sync().search(config.getProduct().getIndex(), queryString,
-				options.build());
+		SearchResults<String, String> searchResults = connection.sync().search(config.getProduct().getIndex(),
+				queryString, options.build());
 		long endTime = System.currentTimeMillis();
-		List<String> skus = results.stream().map(r -> r.get(PRODUCT_ID)).collect(Collectors.toList());
+		List<String> skus = searchResults.stream().map(r -> r.get(PRODUCT_ID)).collect(Collectors.toList());
 		List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
 				.stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
 		generator.add(session.getId(), stores, skus);
-		TimedSearchResults resultsWithCount = new TimedSearchResults();
-		resultsWithCount.setCount(results.getCount());
-		resultsWithCount.setResults(results);
-		resultsWithCount.setDuration(((float) (endTime - startTime)) / 1000);
-		return resultsWithCount;
+		ResultsPage results = new ResultsPage();
+		results.setCount(searchResults.getCount());
+		results.setResults(searchResults);
+		results.setPageIndex(query.getPageIndex());
+		results.setPageSize(query.getPageSize());
+		results.setDuration(((float) (endTime - startTime)) / 1000);
+		return results;
 	}
 
 	@Builder
@@ -185,12 +192,12 @@ class BrewdisController {
 		private String icon;
 	}
 
-	@GetMapping("/breweries/suggest")
+	@GetMapping("/breweries")
 	public Stream<BrewerySuggestion> suggestBreweries(
 			@RequestParam(name = "prefix", defaultValue = "", required = false) String prefix) {
-		List<SuggestResult<String>> results = connection.sync().sugget(config.getProduct().getBrewerySuggestionIndex(),
+		List<SuggestResult<String>> results = connection.sync().sugget(config.getProduct().getBrewery().getIndex(),
 				prefix, SuggestGetOptions.builder().withPayloads(true).max(20l)
-						.fuzzy(config.getProduct().isBrewerySuggestIndexFuzzy()).build());
+						.fuzzy(config.getProduct().getBrewery().isFuzzy()).build());
 		return results.stream().map(s -> {
 			BrewerySuggestion suggestion = new BrewerySuggestion();
 			suggestion.setName(s.getString());
@@ -204,7 +211,15 @@ class BrewdisController {
 			}
 			return suggestion;
 		});
+	}
 
+	@GetMapping("/foods")
+	public Stream<String> suggestFoods(
+			@RequestParam(name = "prefix", defaultValue = "", required = false) String prefix) {
+		List<SuggestResult<String>> results = connection.sync().sugget(config.getProduct().getFoodPairings().getIndex(),
+				prefix, SuggestGetOptions.builder().withPayloads(true).max(20l)
+						.fuzzy(config.getProduct().getFoodPairings().isFuzzy()).build());
+		return results.stream().map(s -> s.getString());
 	}
 
 }
