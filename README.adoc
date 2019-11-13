@@ -84,6 +84,10 @@ image::https://redislabs-solution-architects.github.io/brewdis/images/brewdis-ar
 
 == Demo Steps
 
+=== Presentation
+
+An overview of the business context and demo architecture is available at https://redislabs-solution-architects.github.io/brewdis/[redislabs-solution-architects.github.io/brewdis]
+
 === Products
 . Launch `redis-cli`
 . Show number of documents in RediSearch index:
