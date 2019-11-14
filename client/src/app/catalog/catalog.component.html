@@ -60,7 +60,7 @@
 		<mat-form-field hintLabel="RediSearch query" fxFlex.sm="0 1 calc(100%-10px)" fxFlex.md="0 1 calc(50%-10px)"
 			fxFlex.gt-md="0 1 calc(30%-10px)">
 			<input matInput placeholder="Query" [formControl]="searchField">
-			<button mat-button *ngIf="searchField.value" matSuffix mat-icon-button aria-label="Clear"
+			<button *ngIf="searchField.value" mat-button matSuffix mat-icon-button type="button" aria-label="Clear"
 				(click)="searchField.setValue('')">
 				<mat-icon>close</mat-icon>
 			</button>
