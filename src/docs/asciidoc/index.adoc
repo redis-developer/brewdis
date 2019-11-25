@@ -69,22 +69,27 @@ image::inventory-architecture.svg[]
 * 3500 Stores worldwide
 * 30,000 SKUs
 
-== Stores Index
+== Demo Aspects 
 
-[source,plaintext]
-----
-FT.CREATE stores SCHEMA
-   store TAG SORTABLE
-   name TEXT
-   location GEO
-   market TAG SORTABLE
-   ...
-----
+[%step]
+* Product Catalog
+* Item Availability
+* Real-Time Inventory
 
-[source,plaintext]
-----
-FT.ADD stores "store:<id>" 1.0 FIELDS ...
----- 
+[NOTE.speaker]
+--
+* Product Catalog: full text + secondary indexing (tag, numeric, geo)
+* Item availability: what is available and where? geo filters
+* Real-Time Inventory: streaming store/sku updates 
+-- 
+
+== Data Model
+
+Indexes:
+
+* `products`
+* `stores`
+* `inventory`
 
 == Products Index
 
@@ -100,6 +105,23 @@ FT.CREATE products SCHEMA
 [source,plaintext]
 ----
 FT.ADD products "product:<sku>" 1.0 FIELDS ...
+---- 
+
+== Stores Index
+
+[source,plaintext]
+----
+FT.CREATE stores SCHEMA
+   store TAG SORTABLE
+   name TEXT
+   location GEO
+   market TAG SORTABLE
+   ...
+----
+
+[source,plaintext]
+----
+FT.ADD stores "store:<id>" 1.0 FIELDS ...
 ---- 
 
 == Inventory Index
