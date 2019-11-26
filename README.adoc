@@ -3,6 +3,7 @@
 :idseparator: -
 ifdef::env-github[]
 :toc: preamble
+:toclevels: 1
 endif::[]
 ifndef::env-github[:icons: font]
 // URIs
