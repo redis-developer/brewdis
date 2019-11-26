@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.redislabs.demo.brewdis.BrewdisConfig.StompConfig;
+import com.redislabs.demo.brewdis.Config.StompConfig;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.Direction;
 import com.redislabs.lettusearch.search.HighlightOptions;
@@ -48,10 +48,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(path = "/api")
 @CrossOrigin
 @Slf4j
-class BrewdisController {
+class WebController {
 
 	@Autowired
-	private BrewdisConfig config;
+	private Config config;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired

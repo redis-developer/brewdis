@@ -33,14 +33,15 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.redislabs.demo.brewdis.BrewdisController.BrewerySuggestionPayload;
-import com.redislabs.demo.brewdis.BrewdisController.Category;
-import com.redislabs.demo.brewdis.BrewdisController.Style;
+import com.redislabs.demo.brewdis.WebController.BrewerySuggestionPayload;
+import com.redislabs.demo.brewdis.WebController.Category;
+import com.redislabs.demo.brewdis.WebController.Style;
 import com.redislabs.lettusearch.RediSearchCommands;
 import com.redislabs.lettusearch.RediSearchUtils;
 import com.redislabs.lettusearch.RediSearchUtils.Info;
@@ -64,6 +65,7 @@ import com.redislabs.riot.cli.ProcessorOptions;
 import com.redislabs.riot.cli.TransferOptions;
 import com.redislabs.riot.cli.file.FileImportCommand;
 import com.redislabs.riot.cli.file.FileReaderOptions;
+import com.redislabs.riot.cli.redis.Endpoint;
 import com.redislabs.riot.cli.redis.KeyOptions;
 import com.redislabs.riot.cli.redis.RediSearchCommandOptions;
 import com.redislabs.riot.cli.redis.RedisConnectionOptions;
@@ -82,18 +84,23 @@ public class DataLoader implements InitializingBean {
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired
-	private BrewdisConfig config;
+	private Config config;
+	@Autowired
+	private RedisProperties redisProperties;
 	@Getter
 	private List<Category> categories;
 	@Getter
 	private Map<String, List<Style>> styles = new HashMap<>();
 	private List<String> stopwords;
+	private RedisConnectionOptions connectionOptions = new RedisConnectionOptions();
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.stopwords = new BufferedReader(
 				new InputStreamReader(stopwordsResource.getInputStream(), StandardCharsets.UTF_8)).lines()
 						.collect(Collectors.toList());
+		this.connectionOptions
+				.setServers(Arrays.asList(new Endpoint(redisProperties.getHost() + ":" + redisProperties.getPort())));
 	}
 
 	public void execute() throws IOException, URISyntaxException {
@@ -154,7 +161,7 @@ public class DataLoader implements InitializingBean {
 		writerOptions.setKeyOptions(keyOptions);
 		writerOptions.setRediSearchCommandOptions(searchOptions);
 		command.setRedisWriterOptions(writerOptions);
-		command.execute("stores-import", new RedisConnectionOptions());
+		command.execute("stores-import", connectionOptions);
 	}
 
 	private void loadProducts() {
@@ -217,7 +224,7 @@ public class DataLoader implements InitializingBean {
 		keyOptions.setKeys(PRODUCT_ID);
 		writerOptions.setKeyOptions(keyOptions);
 		command.setRedisWriterOptions(writerOptions);
-		command.execute("products-import", new RedisConnectionOptions());
+		command.execute("products-import", connectionOptions);
 	}
 
 	private void loadCategoriesAndStyles() {

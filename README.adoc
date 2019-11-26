@@ -22,65 +22,14 @@ endif::[]
 
 Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com].
 
-== Getting Started
+== Run the demo
 
-=== Setup
-This demo requires Java 11 or higher and https://www.npmjs.com[npm]
-
-You will also need a https://oss.redislabs.com/redisearch/Quick_Start/[RediSearch] database to run the demo.
-
-To run RediSearch using Docker:
 [source,shell]
 ----
-$ docker run -p 6379:6379 redislabs/redisearch:latest
+$ docker-compose up
 ----
 
-=== Running the demo
-Clone this git repository and build it:
-[source,shell]
-----
-$ git clone https://github.com/Redislabs-Solution-Architects/brewdis.git
-$ cd brewdis
-$ ./mvnw clean install
-----
-
-==== Locally
-Run the application:
-[source,shell]
-----
-$ java -jar server/target/brewdis-server-1.0.0.jar --spring.redis.host=<host> --spring.redis.port=<port>
-----
-
-==== Docker
-Build the Docker image:
-[source,shell]
-----
-$ cd server
-$ mvn dockerfile:build
-----
-
-Run the container:
-[source,shell]
-----
-$ docker run  -e "spring.redis.host=docker.for.mac.localhost" -p 8080:8080 redislabs/brewdis
-----
-
-=== Configuration
-
-Here are the most common configuration properties:
-
-- `spring.redis.host`: Redis database hostname (default: `localhost`)
-- `spring.redis.port`: Redis database port (default: `6379`)
-- `inventory.generator.rate`: duration in millis the generator should sleep between inventory updates (default: `100`)
-- `availability-radius`: radius to find in-store availability (default: `25 mi`)   
-
-== Architecture
-
-{empty} +
-
-image::https://redislabs-solution-architects.github.io/brewdis/images/brewdis-architecture.svg[Brewdis]
-
-{empty} +
+Access the demo at http://localhost[]
 
 == Demo Steps
 
@@ -120,3 +69,25 @@ TIP: `name`, `description`, `breweryName` are phonetic text fields so you will n
 . Click on a store and then on the link that pops up 
 . This takes you to the real-time inventory for that store
 . The *Available to Promise* field is updated in real-time based on current difference between supply (*On Hand*) and demand (*Reserved + Allocated + Virtual Hold*).
+
+
+== Develop
+
+=== Configuration
+
+The app server configuration is stored in `server/src/main/resources/application.properties`
+
+Here are the most common configuration options:
+
+- `spring.redis.host`: Redis database hostname (default: `localhost`)
+- `spring.redis.port`: Redis database port (default: `6379`)
+- `inventory.generator.rate`: duration in millis the generator should sleep between inventory updates (default: `100`)
+- `availability-radius`: radius to find in-store availability (default: `25 mi`)   
+
+=== Architecture
+
+{empty} +
+
+image::https://redislabs-solution-architects.github.io/brewdis/images/brewdis-architecture.svg[Brewdis]
+
+{empty} +

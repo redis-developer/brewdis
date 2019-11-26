@@ -54,7 +54,7 @@ public class InventoryManager
 	private AddOptions addOptions = AddOptions.builder().replace(true).replacePartial(true).build();
 
 	@Autowired
-	private BrewdisConfig config;
+	private Config config;
 	@Autowired
 	private StatefulRediSearchConnection<String, String> connection;
 	@Autowired

@@ -22,7 +22,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.redislabs.demo.brewdis.BrewdisConfig.InventoryGeneratorConfig;
+import com.redislabs.demo.brewdis.Config.InventoryGeneratorConfig;
 import com.redislabs.lettusearch.RediSearchCommands;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.AddOptions;
@@ -56,7 +56,7 @@ public class InventoryGenerator implements InitializingBean {
 	}
 
 	@Autowired
-	private BrewdisConfig config;
+	private Config config;
 	@Autowired
 	private StringRedisTemplate redis;
 	@Autowired

@@ -31,7 +31,6 @@
 			<artifactId>asciidoctor-revealjs</artifactId>
 			<version>2.0.0</version>
 			<type>gem</type>
-			<!-- Avoid downloading gems included in AsciidoctorJ -->
 			<exclusions>
 				<exclusion>
 					<groupId>rubygems</groupId>
@@ -82,7 +81,6 @@
 					<gemPath>${project.build.directory}/gems</gemPath>
 				</configuration>
 				<executions>
-					<!-- Install required gems in target directory -->
 					<execution>
 						<id>install-gems</id>
 						<goals>
@@ -96,23 +94,19 @@
 				<groupId>org.asciidoctor</groupId>
 				<artifactId>asciidoctor-maven-plugin</artifactId>
 				<version>${asciidoctor.maven.plugin.version}</version>
-				<dependencies>
-					<!-- Comment this section to use the default jruby artifact provided 
-						by the plugin -->
+<!-- 				<dependencies>
 					<dependency>
 						<groupId>org.jruby</groupId>
 						<artifactId>jruby-complete</artifactId>
 						<version>${jruby.version}</version>
 					</dependency>
-					<!-- Comment this section to use the default AsciidoctorJ artifact provided 
-						by the plugin -->
 					<dependency>
 						<groupId>org.asciidoctor</groupId>
 						<artifactId>asciidoctorj</artifactId>
 						<version>${asciidoctorj.version}</version>
 					</dependency>
 				</dependencies>
-				<configuration>
+ -->				<configuration>
 					<sourceDirectory>src/docs/asciidoc</sourceDirectory>
 				</configuration>
 				<executions>
@@ -123,7 +117,6 @@
 							<goal>process-asciidoc</goal>
 						</goals>
 						<configuration>
-							<!-- include the asciidoctor-revealjs gem -->
 							<gemPath>${project.build.directory}/gems</gemPath>
 							<requires>
 								<require>asciidoctor-revealjs</require>
@@ -132,20 +125,13 @@
 							<backend>revealjs</backend>
 							<sourceHighlighter>rouge</sourceHighlighter>
 							<attributes>
-								<!-- As we are downloading reveal.js in runtime, it sits in a nonstandard 
-									folder `reveal.js-${revealjs.version}` -->
 								<revealjsdir>reveal.js-${revealjs.version}</revealjsdir>
 								<revealjs_plugin_pdf>enabled</revealjs_plugin_pdf>
 								<revealjs_theme>black</revealjs_theme>
 								<revealjs_history>true</revealjs_history>
 								<revealjs_fragmentInURL>true</revealjs_fragmentInURL>
 								<revealjs_controlsLayout>edges</revealjs_controlsLayout>
-								<!-- <revealjs_transition>linear</revealjs_transition> -->
 								<project-version>${project.version}</project-version>
-								<!-- can use any pygments/rouge css here -->
-								<!-- <rouge-css>class</rouge-css> -->
-								<!-- <customcss>styles/jrx.css</customcss> -->
-
 							</attributes>
 						</configuration>
 					</execution>

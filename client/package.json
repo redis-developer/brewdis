@@ -3,13 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build --output-hashing=all --output-path ui-src/META-INF/resources",
+    "start": "ng serve --proxy-config proxy.conf.json",
+    "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
-  "start": "ng serve --proxy-config proxy.conf.json",
   "private": true,
   "dependencies": {
     "@agm/core": "^1.0.0",

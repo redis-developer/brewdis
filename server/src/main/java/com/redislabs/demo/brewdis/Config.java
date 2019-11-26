@@ -13,7 +13,7 @@ import lombok.Data;
 @Configuration
 @ConfigurationProperties(prefix = "")
 @EnableAutoConfiguration
-public @Data class BrewdisConfig {
+public @Data class Config {
 
 	private String keySeparator;
 	private long streamPollTimeout = 100;
