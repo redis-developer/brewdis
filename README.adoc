@@ -1,10 +1,6 @@
 = Brewdis
 :idprefix:
 :idseparator: -
-ifdef::env-github[]
-:toc: preamble
-:toclevels: 1
-endif::[]
 ifndef::env-github[:icons: font]
 // URIs
 :project-repo: Redislabs-Solution-Architects/brewdis
