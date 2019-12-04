@@ -37,6 +37,8 @@ services:
   redisearch:
     image: redislabs/redisearch:latest
     restart: always
+    ports:
+      - "6379:6379"
     networks:
       - backend
 
