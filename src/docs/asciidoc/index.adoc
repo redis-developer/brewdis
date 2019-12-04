@@ -85,8 +85,6 @@ image::inventory-architecture.svg[]
 
 == Data Model
 
-Indexes:
-
 * `products`
 * `stores`
 * `inventory`
