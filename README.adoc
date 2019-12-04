@@ -23,7 +23,9 @@ Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com]
 
 [source,shell]
 ----
-$ docker-compose up
+git clone https://github.com/Redislabs-Solution-Architects/brewdis.git
+cd brewdis
+docker-compose up
 ----
 
 Access the demo at http://localhost[]
