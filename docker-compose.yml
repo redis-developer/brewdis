@@ -15,6 +15,7 @@ services:
       - redisearch # This service depends on redisearch. Start that first.
     environment: # Pass environment variables to the service
       SPRING_REDIS_HOST: redisearch
+      STOMP_PORT: 80 
     networks: # Networks to join (Services on the same network can communicate with each other using their name)
       - backend
       - frontend
