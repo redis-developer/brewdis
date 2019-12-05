@@ -35,7 +35,7 @@ export class InventoryComponent implements OnInit {
 
   private stompService: StompService;
   dataSource = new MatTableDataSource();
-  displayedColumns: string[] = ['store', 'sku', 'name', 'availableToPromise', 'onHand', 'allocated', 'reserved', 'virtualHold'];
+  displayedColumns: string[] = ['store', 'sku', 'productName', 'availableToPromise', 'onHand', 'allocated', 'reserved', 'virtualHold'];
 
   constructor(private http: HttpClient, private route: ActivatedRoute, private searchService: SearchService) { }
 

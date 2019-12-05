@@ -10,7 +10,7 @@
 		<td mat-cell *matCellDef="let row">{{row.sku}}</td>
 	</ng-container>
 
-	<ng-container matColumnDef="name">
+	<ng-container matColumnDef="productName">
 		<th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
 		<td mat-cell *matCellDef="let row"><img
 				src="{{ row.hasOwnProperty('icon') ? row['icon'] : 'assets/brewdis.svg'}}">
@@ -19,31 +19,31 @@
 	</ng-container>
 
 	<ng-container matColumnDef="availableToPromise">
-		<th class="cell-right" mat-header-cell *matHeaderCellDef mat-sort-header>Available To Promise</th>
+		<th mat-header-cell *matHeaderCellDef mat-sort-header>Available To Promise</th>
 		<td mat-cell *matCellDef="let row"
 			[ngClass]="{
 			'low' : row.level=='low', 'medium' : row.level=='medium', 'high' : row.level=='high'}"
-			class="numeric atp">{{row.availableToPromise}}</td>
+			class="align-center atp">{{row.availableToPromise}}</td>
 	</ng-container>
 
 	<ng-container matColumnDef="onHand">
 		<th mat-header-cell *matHeaderCellDef mat-sort-header>On Hand</th>
-		<td mat-cell *matCellDef="let row" class="numeric">{{row.onHand}}</td>
+		<td mat-cell *matCellDef="let row" class="align-center">{{row.onHand}}</td>
 	</ng-container>
 
 	<ng-container matColumnDef="allocated">
 		<th mat-header-cell *matHeaderCellDef mat-sort-header>Allocated</th>
-		<td mat-cell *matCellDef="let row" class="numeric">{{row.allocated}}</td>
+		<td mat-cell *matCellDef="let row" class="align-center">{{row.allocated}}</td>
 	</ng-container>
 
 	<ng-container matColumnDef="reserved">
 		<th mat-header-cell *matHeaderCellDef mat-sort-header>Reserved</th>
-		<td mat-cell *matCellDef="let row" class="numeric">{{row.reserved}}</td>
+		<td mat-cell *matCellDef="let row" class="align-center">{{row.reserved}}</td>
 	</ng-container>
 
 	<ng-container matColumnDef="virtualHold">
 		<th mat-header-cell *matHeaderCellDef mat-sort-header>Virtual Hold</th>
-		<td mat-cell *matCellDef="let row" class="numeric">{{row.virtualHold}}</td>
+		<td mat-cell *matCellDef="let row" class="align-center">{{row.virtualHold}}</td>
 	</ng-container>
 
 	<tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

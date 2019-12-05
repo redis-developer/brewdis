@@ -4,6 +4,11 @@ table {
 	width: 100%;
 }
 
+::ng-deep .mat-sort-header-container {
+  display:flex;
+  justify-content:center;
+}
+
 table td {
 	vertical-align: middle;
 	position: relative;
@@ -21,9 +26,17 @@ table td p {
 	vertical-align: middle
 }
 
-.mat-sort-header-container {
-	align-items: center;
-  }
+.align-center {
+	text-align: center;
+}
+
+.align-left {
+	text-align: left;
+}
+
+.atp {
+	color: azure;
+}
 
 .low {
 	background-color: #d32f2f;
@@ -40,12 +53,4 @@ table td p {
 .recent {
 	/* border: 5px solid #fdd835; */
 	background-color: papayawhip;
-}
-
-.numeric {
-	text-align: center;
-}
-
-.atp {
-	color: azure;
 }
