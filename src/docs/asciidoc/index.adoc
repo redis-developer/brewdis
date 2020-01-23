@@ -147,7 +147,7 @@ image::brewdis-architecture.svg[]
 
 [source,plaintext]
 ----
-XADD inventory-updates-stream * store 7 sku B5 allocated 4
+XADD inventory-updates * store 7 sku B5 allocated 4
 ----
 
 == Inventory Manager
@@ -155,7 +155,7 @@ XADD inventory-updates-stream * store 7 sku B5 allocated 4
 [%step]
 [source,plaintext]
 ----
-XREAD STREAMS inventory-updates-stream
+XREAD STREAMS inventory-updates
 ----
 [source,plaintext]
 ----
