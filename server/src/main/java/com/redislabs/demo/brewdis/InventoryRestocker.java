@@ -1,9 +1,9 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
-import static com.redislabs.demo.brewdis.Field.ON_HAND;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.Field.STORE_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demo.brewdis.BrewdisField.ON_HAND;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.STORE_ID;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;

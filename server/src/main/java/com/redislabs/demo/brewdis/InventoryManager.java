@@ -1,17 +1,17 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.ALLOCATED;
-import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
-import static com.redislabs.demo.brewdis.Field.DELTA;
-import static com.redislabs.demo.brewdis.Field.EPOCH;
-import static com.redislabs.demo.brewdis.Field.LEVEL;
-import static com.redislabs.demo.brewdis.Field.LOCATION;
-import static com.redislabs.demo.brewdis.Field.ON_HAND;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.Field.RESERVED;
-import static com.redislabs.demo.brewdis.Field.STORE_ID;
-import static com.redislabs.demo.brewdis.Field.TIME;
-import static com.redislabs.demo.brewdis.Field.VIRTUAL_HOLD;
+import static com.redislabs.demo.brewdis.BrewdisField.ALLOCATED;
+import static com.redislabs.demo.brewdis.BrewdisField.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demo.brewdis.BrewdisField.DELTA;
+import static com.redislabs.demo.brewdis.BrewdisField.EPOCH;
+import static com.redislabs.demo.brewdis.BrewdisField.LEVEL;
+import static com.redislabs.demo.brewdis.BrewdisField.LOCATION;
+import static com.redislabs.demo.brewdis.BrewdisField.ON_HAND;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.RESERVED;
+import static com.redislabs.demo.brewdis.BrewdisField.STORE_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.TIME;
+import static com.redislabs.demo.brewdis.BrewdisField.VIRTUAL_HOLD;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -167,7 +167,7 @@ public class InventoryManager
 		RediSearchCommands<String, String> commands = connection.sync();
 		SearchResults<String, String> results = commands.search(index, query, SearchOptions.builder().noContent(true)
 				.limit(Limit.builder().num(config.getInventory().getCleanup().getSearchLimit()).build()).build());
-		results.forEach(r -> commands.del(index, r.getDocumentId(), true));
+		results.forEach(r -> commands.del(index, r.documentId(), true));
 		if (results.size() > 0) {
 			log.info("Deleted {} docs from {} index", results.size(), config.getInventory().getIndex());
 		}

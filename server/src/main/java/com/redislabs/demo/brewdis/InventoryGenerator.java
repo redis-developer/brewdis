@@ -1,11 +1,11 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.ALLOCATED;
-import static com.redislabs.demo.brewdis.Field.ON_HAND;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.Field.RESERVED;
-import static com.redislabs.demo.brewdis.Field.STORE_ID;
-import static com.redislabs.demo.brewdis.Field.VIRTUAL_HOLD;
+import static com.redislabs.demo.brewdis.BrewdisField.ALLOCATED;
+import static com.redislabs.demo.brewdis.BrewdisField.ON_HAND;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.RESERVED;
+import static com.redislabs.demo.brewdis.BrewdisField.STORE_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.VIRTUAL_HOLD;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;

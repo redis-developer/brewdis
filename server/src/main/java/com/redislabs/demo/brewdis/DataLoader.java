@@ -1,24 +1,25 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.BREWERY_ICON;
-import static com.redislabs.demo.brewdis.Field.BREWERY_ID;
-import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
-import static com.redislabs.demo.brewdis.Field.CATEGORY_ID;
-import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
-import static com.redislabs.demo.brewdis.Field.COUNT;
-import static com.redislabs.demo.brewdis.Field.FOOD_PAIRINGS;
-import static com.redislabs.demo.brewdis.Field.LOCATION;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_LABEL;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_NAME;
-import static com.redislabs.demo.brewdis.Field.STORE_ID;
-import static com.redislabs.demo.brewdis.Field.STYLE_ID;
-import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.BREWERY_ICON;
+import static com.redislabs.demo.brewdis.BrewdisField.BREWERY_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.BREWERY_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.CATEGORY_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.CATEGORY_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.COUNT;
+import static com.redislabs.demo.brewdis.BrewdisField.FOOD_PAIRINGS;
+import static com.redislabs.demo.brewdis.BrewdisField.LOCATION;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_DESCRIPTION;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_LABEL;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.STORE_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.STYLE_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.STYLE_NAME;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ import com.redislabs.demo.brewdis.WebController.Category;
 import com.redislabs.demo.brewdis.WebController.Style;
 import com.redislabs.lettusearch.RediSearchCommands;
 import com.redislabs.lettusearch.RediSearchUtils;
-import com.redislabs.lettusearch.RediSearchUtils.Info;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.aggregate.AggregateOptions;
 import com.redislabs.lettusearch.aggregate.AggregateResults;
@@ -54,22 +54,23 @@ import com.redislabs.lettusearch.aggregate.Order;
 import com.redislabs.lettusearch.aggregate.Sort;
 import com.redislabs.lettusearch.aggregate.SortProperty;
 import com.redislabs.lettusearch.aggregate.reducer.CountDistinct;
+import com.redislabs.lettusearch.index.IndexInfo;
 import com.redislabs.lettusearch.search.DropOptions;
 import com.redislabs.lettusearch.search.Schema;
+import com.redislabs.lettusearch.search.field.Field;
 import com.redislabs.lettusearch.search.field.GeoField;
 import com.redislabs.lettusearch.search.field.NumericField;
 import com.redislabs.lettusearch.search.field.PhoneticMatcher;
 import com.redislabs.lettusearch.search.field.TagField;
 import com.redislabs.lettusearch.search.field.TextField;
+import com.redislabs.picocliredis.RedisOptions;
+import com.redislabs.picocliredis.Server;
 import com.redislabs.riot.cli.ProcessorOptions;
-import com.redislabs.riot.cli.TransferOptions;
 import com.redislabs.riot.cli.file.FileImportCommand;
 import com.redislabs.riot.cli.file.FileReaderOptions;
-import com.redislabs.riot.cli.redis.Endpoint;
-import com.redislabs.riot.cli.redis.KeyOptions;
-import com.redislabs.riot.cli.redis.RediSearchCommandOptions;
-import com.redislabs.riot.cli.redis.RedisConnectionOptions;
-import com.redislabs.riot.cli.redis.RedisWriterOptions;
+import com.redislabs.riot.cli.file.ResourceOptions;
+import com.redislabs.riot.redis.writer.KeyBuilder;
+import com.redislabs.riot.redis.writer.map.FtAdd;
 
 import io.lettuce.core.RedisCommandExecutionException;
 import lombok.Getter;
@@ -92,15 +93,14 @@ public class DataLoader implements InitializingBean {
 	@Getter
 	private Map<String, List<Style>> styles = new HashMap<>();
 	private List<String> stopwords;
-	private RedisConnectionOptions connectionOptions = new RedisConnectionOptions();
+	private RedisOptions connectionOptions = new RedisOptions();
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.stopwords = new BufferedReader(
 				new InputStreamReader(stopwordsResource.getInputStream(), StandardCharsets.UTF_8)).lines()
 						.collect(Collectors.toList());
-		this.connectionOptions
-				.setServers(Arrays.asList(new Endpoint(redisProperties.getHost() + ":" + redisProperties.getPort())));
+		this.connectionOptions.servers(new Server(redisProperties.getHost(), redisProperties.getPort()));
 	}
 
 	public void execute() throws IOException, URISyntaxException {
@@ -115,9 +115,9 @@ public class DataLoader implements InitializingBean {
 		RediSearchCommands<String, String> commands = connection.sync();
 		String index = config.getStore().getIndex();
 		try {
-			Info info = RediSearchUtils.getInfo(commands.ftInfo(index));
-			if (info.getNumDocs() >= config.getStore().getCount()) {
-				log.info("Found {} stores - skipping load", info.getNumDocs());
+			IndexInfo info = RediSearchUtils.getInfo(commands.indexInfo(index));
+			if (info.numDocs() >= config.getStore().getCount()) {
+				log.info("Found {} stores - skipping load", info.numDocs());
 				return;
 			}
 			commands.drop(index, DropOptions.builder().build());
@@ -127,11 +127,9 @@ public class DataLoader implements InitializingBean {
 			}
 		}
 		Schema schema = Schema.builder().field(TagField.builder().name(STORE_ID).sortable(true).build())
-				.field(TextField.builder().name("description").build())
-				.field(TagField.builder().name("market").sortable(true).build())
-				.field(TagField.builder().name("parent").sortable(true).build())
-				.field(TextField.builder().name("address").build())
-				.field(TextField.builder().name("city").sortable(true).build())
+				.field(Field.text("description")).field(Field.tag("market").sortable(true))
+				.field(Field.tag("parent").sortable(true)).field(Field.text("address"))
+				.field(Field.text("city").sortable(true))
 				.field(TagField.builder().name("country").sortable(true).build())
 				.field(TagField.builder().name("inventoryAvailableToSell").sortable(true).build())
 				.field(TagField.builder().name("isDefault").sortable(true).build())
@@ -146,31 +144,25 @@ public class DataLoader implements InitializingBean {
 		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
 		FileReaderOptions readerOptions = new FileReaderOptions();
-		readerOptions.setPath(config.getStore().getUrl());
-		readerOptions.setHeader(true);
-		command.setFileReaderOptions(readerOptions);
+		readerOptions.resourceOptions(new ResourceOptions().url(URI.create(config.getStore().getUrl())));
+		readerOptions.header(true);
+		command.options(readerOptions);
 		ProcessorOptions processorOptions = new ProcessorOptions();
-		processorOptions.getFields().put(LOCATION, "#geo(longitude,latitude)");
-		command.setProcessorOptions(processorOptions);
-		RedisWriterOptions writerOptions = new RedisWriterOptions();
-		RediSearchCommandOptions searchOptions = new RediSearchCommandOptions();
-		searchOptions.setIndex(index);
-		KeyOptions keyOptions = new KeyOptions();
-		keyOptions.setKeyspace("store");
-		keyOptions.setKeys(STORE_ID);
-		writerOptions.setKeyOptions(keyOptions);
-		writerOptions.setRediSearchCommandOptions(searchOptions);
-		command.setRedisWriterOptions(writerOptions);
-		command.execute("stores-import", connectionOptions);
+		processorOptions.fields().put(LOCATION, "#geo(longitude,latitude)");
+		command.processorOptions(processorOptions);
+		FtAdd add = new FtAdd();
+		add.index(index);
+		add.keyBuilder(KeyBuilder.builder().prefix("store").fields(new String[] { STORE_ID }).build());
+		command.execute(add);
 	}
 
-	private void loadProducts() {
+	private void loadProducts() throws URISyntaxException {
 		RediSearchCommands<String, String> commands = connection.sync();
 		String index = config.getProduct().getIndex();
 		try {
-			Info info = RediSearchUtils.getInfo(commands.ftInfo(index));
-			if (info.getNumDocs() >= config.getProduct().getLoad().getCount()) {
-				log.info("Found {} products - skipping load", info.getNumDocs());
+			IndexInfo info = RediSearchUtils.getInfo(commands.indexInfo(index));
+			if (info.numDocs() >= config.getProduct().getLoad().getCount()) {
+				log.info("Found {} products - skipping load", info.numDocs());
 				return;
 			}
 			commands.drop(index, DropOptions.builder().build());
@@ -195,14 +187,12 @@ public class DataLoader implements InitializingBean {
 				.field(NumericField.builder().name("ibu").sortable(true).build()).build();
 		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
-		TransferOptions transferOptions = new TransferOptions();
 		if (config.getProduct().getLoad().getSleep() != null) {
-			transferOptions.setSleep(config.getProduct().getLoad().getSleep());
+			command.sleep(config.getProduct().getLoad().getSleep());
 		}
-		command.setTransferOptions(transferOptions);
 		FileReaderOptions readerOptions = new FileReaderOptions();
-		readerOptions.setPath(config.getProduct().getUrl());
-		command.setFileReaderOptions(readerOptions);
+		readerOptions.resourceOptions(new ResourceOptions().url(new URI(config.getProduct().getUrl())));
+		command.options(readerOptions);
 		ProcessorOptions processorOptions = new ProcessorOptions();
 		processorOptions.addField(PRODUCT_ID, "id");
 		processorOptions.addField(PRODUCT_LABEL, "containsKey('labels')");
@@ -214,17 +204,11 @@ public class DataLoader implements InitializingBean {
 		processorOptions.addField(BREWERY_NAME, "containsKey('breweries')?breweries[0].nameShortDisplay:null");
 		processorOptions.addField(BREWERY_ICON,
 				"containsKey('breweries')?breweries[0].containsKey('images')?breweries[0].get('images').get('icon'):null:null");
-		command.setProcessorOptions(processorOptions);
-		RedisWriterOptions writerOptions = new RedisWriterOptions();
-		RediSearchCommandOptions rediSearchCommandOptions = new RediSearchCommandOptions();
-		rediSearchCommandOptions.setIndex(index);
-		writerOptions.setRediSearchCommandOptions(rediSearchCommandOptions);
-		KeyOptions keyOptions = new KeyOptions();
-		keyOptions.setKeyspace("product");
-		keyOptions.setKeys(PRODUCT_ID);
-		writerOptions.setKeyOptions(keyOptions);
-		command.setRedisWriterOptions(writerOptions);
-		command.execute("products-import", connectionOptions);
+		command.processorOptions(processorOptions);
+		FtAdd ftAdd = new FtAdd();
+		ftAdd.index(index);
+		ftAdd.keyBuilder(KeyBuilder.builder().prefix("product").field(PRODUCT_ID).build());
+		command.execute(ftAdd);
 	}
 
 	private void loadCategoriesAndStyles() {
@@ -234,7 +218,7 @@ public class DataLoader implements InitializingBean {
 		AggregateResults<String, String> results = commands.aggregate(index, "*",
 				AggregateOptions.builder().load(CATEGORY_NAME)
 						.operation(Group.builder().property(CATEGORY_ID).property(CATEGORY_NAME)
-								.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+								.reducer(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
 						.build());
 		this.categories = results.stream()
 				.map(r -> Category.builder().id(r.get(CATEGORY_ID)).name(r.get(CATEGORY_NAME)).build())
@@ -246,7 +230,7 @@ public class DataLoader implements InitializingBean {
 					config.tag(CATEGORY_ID, category.getId()),
 					AggregateOptions.builder().load(STYLE_NAME)
 							.operation(Group.builder().property(STYLE_ID).property(STYLE_NAME)
-									.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+									.reducer(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
 							.build());
 			List<Style> styleList = styleResults.stream()
 					.map(r -> Style.builder().id(r.get(STYLE_ID)).name(r.get(STYLE_NAME)).build())
@@ -271,7 +255,7 @@ public class DataLoader implements InitializingBean {
 		AggregateResults<String, String> results = commands.aggregate(config.getProduct().getIndex(), "*",
 				AggregateOptions.builder().load(BREWERY_NAME).load(BREWERY_ICON)
 						.operation(Group.builder().property(BREWERY_ID).property(BREWERY_NAME).property(BREWERY_ICON)
-								.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+								.reducer(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
 						.build());
 		ObjectMapper mapper = new ObjectMapper();
 		results.forEach(r -> {
@@ -301,7 +285,7 @@ public class DataLoader implements InitializingBean {
 		String index = config.getProduct().getIndex();
 		AggregateResults<String, String> results = commands.aggregate(index, "*", AggregateOptions.builder()
 				.operation(Group.builder().property(FOOD_PAIRINGS)
-						.reduce(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+						.reducer(CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
 				.operation(Sort.builder().property(SortProperty.builder().property(COUNT).order(Order.Desc).build())
 						.build())
 				.operation(Limit.builder().num(config.getProduct().getFoodPairings().getLimit()).build()).build());

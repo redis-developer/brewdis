@@ -7,9 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import com.redislabs.springredisearch.RediSearchConfiguration;
-
-@SpringBootApplication(scanBasePackageClasses = { BrewdisApplication.class, RediSearchConfiguration.class })
+@SpringBootApplication
 @EnableScheduling
 public class BrewdisApplication implements ApplicationRunner {
 

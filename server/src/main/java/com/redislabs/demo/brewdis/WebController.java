@@ -1,15 +1,15 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.Field.AVAILABLE_TO_PROMISE;
-import static com.redislabs.demo.brewdis.Field.BREWERY_NAME;
-import static com.redislabs.demo.brewdis.Field.CATEGORY_NAME;
-import static com.redislabs.demo.brewdis.Field.LEVEL;
-import static com.redislabs.demo.brewdis.Field.LOCATION;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_DESCRIPTION;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.Field.PRODUCT_NAME;
-import static com.redislabs.demo.brewdis.Field.STORE_ID;
-import static com.redislabs.demo.brewdis.Field.STYLE_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.AVAILABLE_TO_PROMISE;
+import static com.redislabs.demo.brewdis.BrewdisField.BREWERY_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.CATEGORY_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.LEVEL;
+import static com.redislabs.demo.brewdis.BrewdisField.LOCATION;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_DESCRIPTION;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_NAME;
+import static com.redislabs.demo.brewdis.BrewdisField.STORE_ID;
+import static com.redislabs.demo.brewdis.BrewdisField.STYLE_NAME;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,12 +31,12 @@ import com.redislabs.demo.brewdis.Config.StompConfig;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import com.redislabs.lettusearch.search.Direction;
 import com.redislabs.lettusearch.search.HighlightOptions;
-import com.redislabs.lettusearch.search.HighlightOptions.TagOptions;
 import com.redislabs.lettusearch.search.Limit;
 import com.redislabs.lettusearch.search.SearchOptions;
 import com.redislabs.lettusearch.search.SearchOptions.SearchOptionsBuilder;
 import com.redislabs.lettusearch.search.SearchResults;
 import com.redislabs.lettusearch.search.SortBy;
+import com.redislabs.lettusearch.search.TagOptions;
 import com.redislabs.lettusearch.suggest.SuggestGetOptions;
 import com.redislabs.lettusearch.suggest.SuggestResult;
 
@@ -109,7 +109,7 @@ class WebController {
 				.stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
 		generator.add(session.getId(), stores, skus);
 		ResultsPage results = new ResultsPage();
-		results.setCount(searchResults.getCount());
+		results.setCount(searchResults.count());
 		results.setResults(searchResults);
 		results.setPageIndex(query.getPageIndex());
 		results.setPageSize(query.getPageSize());
@@ -200,14 +200,14 @@ class WebController {
 						.fuzzy(config.getProduct().getBrewery().isFuzzy()).build());
 		return results.stream().map(s -> {
 			BrewerySuggestion suggestion = new BrewerySuggestion();
-			suggestion.setName(s.getString());
+			suggestion.setName(s.string());
 			BrewerySuggestionPayload payload;
 			try {
-				payload = mapper.readValue(s.getPayload(), BrewerySuggestionPayload.class);
+				payload = mapper.readValue(s.payload(), BrewerySuggestionPayload.class);
 				suggestion.setId(payload.getId());
 				suggestion.setIcon(payload.getIcon());
 			} catch (Exception e) {
-				log.error("Could not deserialize brewery payload {}", s.getPayload(), e);
+				log.error("Could not deserialize brewery payload {}", s.payload(), e);
 			}
 			return suggestion;
 		});
@@ -219,7 +219,7 @@ class WebController {
 		List<SuggestResult<String>> results = connection.sync().sugget(config.getProduct().getFoodPairings().getIndex(),
 				prefix, SuggestGetOptions.builder().withPayloads(true).max(20l)
 						.fuzzy(config.getProduct().getFoodPairings().isFuzzy()).build());
-		return results.stream().map(s -> s.getString());
+		return results.stream().map(s -> s.string());
 	}
 
 }
