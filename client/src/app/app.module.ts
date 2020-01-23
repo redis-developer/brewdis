@@ -15,7 +15,7 @@ import {
   MatButtonModule, MatIconModule, MatCardModule,
   MatInputModule, MatAutocompleteModule, MatListModule,
   MatGridListModule, MatToolbarModule, MatSelectModule,
-  MatTableModule, MatSortModule, MatButtonToggleModule
+  MatTableModule, MatSortModule, MatButtonToggleModule, MatExpansionModule
 } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -56,7 +56,8 @@ import { MaterialModule } from './material.module';
     MatSortModule,
     MatButtonToggleModule,
     MatDialogModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatExpansionModule
   ],
   providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
   bootstrap: [AppComponent]

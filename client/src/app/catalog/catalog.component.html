@@ -1,86 +1,104 @@
 <form (ngSubmit)="search(0,50)" class="search-form">
-	<div fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap="10px" ngClass.gt-xs="ml-10">
-		<mat-form-field fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)" fxFlex.gt-md="0 1 calc(20%-10px)">
-			<mat-label>Category</mat-label>
-			<mat-select [formControl]="categoryField">
-				<mat-option *ngFor="let category of categories" [value]="category.id">{{category.name}}</mat-option>
-			</mat-select>
-		</mat-form-field>
-		<mat-form-field fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)" fxFlex.gt-md="0 1 calc(20%-10px)">
-			<mat-label>Style</mat-label>
-			<mat-select [formControl]="styleField">
-				<mat-option *ngFor="let style of styles" [value]="style.id">{{style.name}}</mat-option>
-			</mat-select>
-		</mat-form-field>
-		<mat-form-field hintLabel="Type a few characters" fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)"
-			fxFlex.gt-md="0 1 calc(25%-10px)">
-			<input matInput placeholder="Brewery" aria-label="Brewery" [matAutocomplete]="autoBrewery"
-				[formControl]="breweryField">
-			<mat-autocomplete #autoBrewery="matAutocomplete" [displayWith]="displayBrewery"
-				(optionSelected)='brewerySelected($event.option.value)'>
-				<mat-option *ngFor="let brewery of breweries" [value]="brewery">
-					<img class="brewery-img" aria-hidden [src]="brewery.icon" height="25">
-					<span>{{brewery.name}}</span>
-				</mat-option>
-			</mat-autocomplete>
-		</mat-form-field>
-		<mat-form-field fxFlex.sm="0 1 calc(33%-10px)" fxFlex.md="0 1 calc(25%-10px)" fxFlex.gt-md="0 1 calc(7%-10px)">
-			<mat-label>ABV</mat-label>
-			<mat-select [formControl]="abvField">
-				<mat-option value="0-3">0 - 3%</mat-option>
-				<mat-option value="3-5">3 - 5%</mat-option>
-				<mat-option value="5-7">5 - 7%</mat-option>
-				<mat-option value="7-9">7 - 9%</mat-option>
-				<mat-option value="9-11">9 - 11%</mat-option>
-				<mat-option value="11-15">11 - 15%</mat-option>
-				<mat-option value="15-100">> 15%</mat-option>
-			</mat-select>
-		</mat-form-field>
-		<mat-form-field fxFlex.sm="0 1 calc(33%-10px)" fxFlex.md="0 1 calc(25%-10px)" fxFlex.gt-md="0 1 calc(8%-10px)">
-			<mat-label>IBU</mat-label>
-			<mat-select [formControl]="ibuField">
-				<mat-option value="0-30">0 - 30</mat-option>
-				<mat-option value="30-60">30 - 60</mat-option>
-				<mat-option value="60-90">60 - 90</mat-option>
-				<mat-option value="90-120">90 - 120</mat-option>
-				<mat-option value="120-inf">> 120</mat-option>
-			</mat-select>
-		</mat-form-field>
-		<mat-form-field hintLabel="Type a few characters" fxFlex.sm="0 1 calc(33%-10px)" fxFlex.md="0 1 calc(25%-10px)"
-			fxFlex.gt-md="0 1 calc(8%-10px)">
-			<input matInput placeholder="Food pairing" aria-label="Food" [matAutocomplete]="autoFood"
-				[formControl]="foodField">
-			<mat-autocomplete #autoFood="matAutocomplete" [displayWith]="displayFood"
-				(optionSelected)='foodSelected($event.option.value)'>
-				<mat-option *ngFor="let food of foods" [value]="food">
-					<span>{{food}}</span>
-				</mat-option>
-			</mat-autocomplete>
-		</mat-form-field>
-		<mat-form-field hintLabel="RediSearch query" fxFlex.sm="0 1 calc(100%-10px)" fxFlex.md="0 1 calc(50%-10px)"
-			fxFlex.gt-md="0 1 calc(30%-10px)">
+	<div fxLayout="row" fxLayoutGap="10px">
+		<mat-form-field hintLabel="RediSearch query" fxFlex="90">
 			<input matInput placeholder="Query" [formControl]="searchField">
 			<button *ngIf="searchField.value" mat-button matSuffix mat-icon-button type="button" aria-label="Clear"
 				(click)="searchField.setValue('')">
 				<mat-icon>close</mat-icon>
 			</button>
 		</mat-form-field>
-		<mat-form-field fxFlex.sm="0 1 calc(25%-10px)" fxFlex.md="0 1 calc(10%-10px)" fxFlex.gt-md="0 1 calc(5%-10px)">
-			<mat-label>Sort by</mat-label>
-			<mat-select [(value)]="sortByField">
-				<mat-option value="name">Beer Name</mat-option>
-				<mat-option value="abv">ABV</mat-option>
-				<mat-option value="ibu">IBU</mat-option>
-			</mat-select>
-		</mat-form-field>
-		<mat-form-field fxFlex.sm="0 1 calc(25%-10px)" fxFlex.md="0 1 calc(10%-10px)" fxFlex.gt-md="0 1 calc(5%-10px)">
-			<mat-select [(value)]="sortByDirection">
-				<mat-option value="Ascending">Ascending</mat-option>
-				<mat-option value="Descending">Descending</mat-option>
-			</mat-select>
-		</mat-form-field>
 		<button mat-raised-button color="primary" type="submit" class="submit">Submit</button>
 	</div>
+	<mat-accordion>
+		<mat-expansion-panel>
+			<mat-expansion-panel-header>
+				<mat-panel-title>
+					Criteria
+				</mat-panel-title>
+			</mat-expansion-panel-header>
+			<div fxLayout="row" fxLayoutGap="10px">
+				<mat-form-field>
+					<mat-label>Category</mat-label>
+					<mat-select [formControl]="categoryField">
+						<mat-option *ngFor="let category of categories" [value]="category.id">{{category.name}}
+						</mat-option>
+					</mat-select>
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label>Style</mat-label>
+					<mat-select [formControl]="styleField">
+						<mat-option *ngFor="let style of styles" [value]="style.id">{{style.name}}</mat-option>
+					</mat-select>
+				</mat-form-field>
+				<mat-form-field hintLabel="Type a few characters">
+					<input matInput placeholder="Brewery" aria-label="Brewery" [matAutocomplete]="autoBrewery"
+						[formControl]="breweryField">
+					<mat-autocomplete #autoBrewery="matAutocomplete" [displayWith]="displayBrewery"
+						(optionSelected)='brewerySelected($event.option.value)'>
+						<mat-option *ngFor="let brewery of breweries" [value]="brewery">
+							<img class="brewery-img" aria-hidden [src]="brewery.icon" height="25">
+							<span>{{brewery.name}}</span>
+						</mat-option>
+					</mat-autocomplete>
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label>ABV</mat-label>
+					<mat-select [formControl]="abvField">
+						<mat-option value="0-3">0 - 3%</mat-option>
+						<mat-option value="3-5">3 - 5%</mat-option>
+						<mat-option value="5-7">5 - 7%</mat-option>
+						<mat-option value="7-9">7 - 9%</mat-option>
+						<mat-option value="9-11">9 - 11%</mat-option>
+						<mat-option value="11-15">11 - 15%</mat-option>
+						<mat-option value="15-100">> 15%</mat-option>
+					</mat-select>
+				</mat-form-field>
+				<mat-form-field>
+					<mat-label>IBU</mat-label>
+					<mat-select [formControl]="ibuField">
+						<mat-option value="0-30">0 - 30</mat-option>
+						<mat-option value="30-60">30 - 60</mat-option>
+						<mat-option value="60-90">60 - 90</mat-option>
+						<mat-option value="90-120">90 - 120</mat-option>
+						<mat-option value="120-inf">> 120</mat-option>
+					</mat-select>
+				</mat-form-field>
+				<mat-form-field hintLabel="Type a few characters">
+					<input matInput placeholder="Food pairing" aria-label="Food" [matAutocomplete]="autoFood"
+						[formControl]="foodField">
+					<mat-autocomplete #autoFood="matAutocomplete" [displayWith]="displayFood"
+						(optionSelected)='foodSelected($event.option.value)'>
+						<mat-option *ngFor="let food of foods" [value]="food">
+							<span>{{food}}</span>
+						</mat-option>
+					</mat-autocomplete>
+				</mat-form-field>
+			</div>
+		</mat-expansion-panel>
+		<mat-expansion-panel>
+			<mat-expansion-panel-header>
+				<mat-panel-title>
+					Sort options
+				</mat-panel-title>
+			</mat-expansion-panel-header>
+			<div fxLayout="row" fxLayoutGap="10px">
+				<mat-form-field>
+					<mat-label>Sort by</mat-label>
+					<mat-select [(value)]="sortByField">
+						<mat-option value="name">Beer Name</mat-option>
+						<mat-option value="abv">ABV</mat-option>
+						<mat-option value="ibu">IBU</mat-option>
+					</mat-select>
+				</mat-form-field>
+				<mat-form-field>
+					<mat-select [(value)]="sortByDirection">
+						<mat-option value="Ascending">Ascending</mat-option>
+						<mat-option value="Descending">Descending</mat-option>
+					</mat-select>
+				</mat-form-field>
+			</div>
+		</mat-expansion-panel>
+	</mat-accordion>
 </form>
 
 <div *ngIf="result$ | async as results">

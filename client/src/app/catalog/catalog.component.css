@@ -1,6 +1,5 @@
 .search-form {
-	display: flex;
-	justify-content: stretch;
+	margin: 10px;
 }
 
 .submit {
