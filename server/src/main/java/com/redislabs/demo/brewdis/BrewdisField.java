@@ -1,6 +1,6 @@
 package com.redislabs.demo.brewdis;
 
-public class Field {
+public class BrewdisField {
 
 	public static final String ADDED = "added";
 	public static final String ALLOCATED = "allocated";
