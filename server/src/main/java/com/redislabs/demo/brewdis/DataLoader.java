@@ -58,7 +58,6 @@ import com.redislabs.lettusearch.index.IndexInfo;
 import com.redislabs.lettusearch.search.DropOptions;
 import com.redislabs.lettusearch.search.Schema;
 import com.redislabs.lettusearch.search.field.Field;
-import com.redislabs.lettusearch.search.field.GeoField;
 import com.redislabs.lettusearch.search.field.NumericField;
 import com.redislabs.lettusearch.search.field.PhoneticMatcher;
 import com.redislabs.lettusearch.search.field.TagField;
@@ -126,21 +125,15 @@ public class DataLoader implements InitializingBean {
 				throw e;
 			}
 		}
-		Schema schema = Schema.builder().field(TagField.builder().name(STORE_ID).sortable(true).build())
-				.field(Field.text("description")).field(Field.tag("market").sortable(true))
-				.field(Field.tag("parent").sortable(true)).field(Field.text("address"))
-				.field(Field.text("city").sortable(true))
-				.field(TagField.builder().name("country").sortable(true).build())
-				.field(TagField.builder().name("inventoryAvailableToSell").sortable(true).build())
-				.field(TagField.builder().name("isDefault").sortable(true).build())
-				.field(TagField.builder().name("preferred").sortable(true).build())
-				.field(NumericField.builder().name("latitude").sortable(true).build())
-				.field(GeoField.builder().name(LOCATION).build())
-				.field(NumericField.builder().name("longitude").sortable(true).build())
-				.field(TagField.builder().name("rollupInventory").sortable(true).build())
-				.field(TagField.builder().name("state").sortable(true).build())
-				.field(TagField.builder().name("type").sortable(true).build())
-				.field(TagField.builder().name("postalCode").sortable(true).build()).build();
+		Schema schema = Schema.builder().field(Field.tag(STORE_ID).sortable(true)).field(Field.text("description"))
+				.field(Field.tag("market").sortable(true)).field(Field.tag("parent").sortable(true))
+				.field(Field.text("address")).field(Field.text("city").sortable(true))
+				.field(Field.tag("country").sortable(true)).field(Field.tag("inventoryAvailableToSell").sortable(true))
+				.field(Field.tag("isDefault").sortable(true)).field(Field.tag("preferred").sortable(true))
+				.field(Field.numeric("latitude").sortable(true)).field(Field.geo(LOCATION))
+				.field(Field.numeric("longitude").sortable(true)).field(Field.tag("rollupInventory").sortable(true))
+				.field(Field.tag("state").sortable(true)).field(Field.tag("type").sortable(true))
+				.field(Field.tag("postalCode").sortable(true)).build();
 		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
 		FileReaderOptions readerOptions = new FileReaderOptions();
