@@ -65,6 +65,7 @@ import com.redislabs.lettusearch.search.field.TextField;
 import com.redislabs.picocliredis.RedisOptions;
 import com.redislabs.picocliredis.Server;
 import com.redislabs.riot.cli.ProcessorOptions;
+import com.redislabs.riot.cli.RiotCommand;
 import com.redislabs.riot.cli.file.FileImportCommand;
 import com.redislabs.riot.cli.file.FileReaderOptions;
 import com.redislabs.riot.cli.file.ResourceOptions;
@@ -92,14 +93,12 @@ public class DataLoader implements InitializingBean {
 	@Getter
 	private Map<String, List<Style>> styles = new HashMap<>();
 	private List<String> stopwords;
-	private RedisOptions connectionOptions = new RedisOptions();
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		this.stopwords = new BufferedReader(
 				new InputStreamReader(stopwordsResource.getInputStream(), StandardCharsets.UTF_8)).lines()
 						.collect(Collectors.toList());
-		this.connectionOptions.servers(new Server(redisProperties.getHost(), redisProperties.getPort()));
 	}
 
 	public void execute() throws IOException, URISyntaxException {
@@ -136,6 +135,7 @@ public class DataLoader implements InitializingBean {
 				.field(Field.tag("postalCode").sortable(true)).build();
 		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
+		configure(command);
 		FileReaderOptions readerOptions = new FileReaderOptions();
 		readerOptions.resourceOptions(new ResourceOptions().url(URI.create(config.getStore().getUrl())));
 		readerOptions.header(true);
@@ -180,6 +180,7 @@ public class DataLoader implements InitializingBean {
 				.field(NumericField.builder().name("ibu").sortable(true).build()).build();
 		commands.create(index, schema);
 		FileImportCommand command = new FileImportCommand();
+		configure(command);
 		if (config.getProduct().getLoad().getSleep() != null) {
 			command.sleep(config.getProduct().getLoad().getSleep());
 		}
@@ -202,6 +203,17 @@ public class DataLoader implements InitializingBean {
 		ftAdd.index(index);
 		ftAdd.keyBuilder(KeyBuilder.builder().prefix("product").field(PRODUCT_ID).build());
 		command.execute(ftAdd);
+	}
+
+	private void configure(RiotCommand command) {
+		RedisOptions redisOptions = command.redisOptions();
+		redisOptions.servers(new Server(redisProperties.getHost(), redisProperties.getPort()));
+		if (redisProperties.getClientName() != null) {
+			redisOptions.clientName(redisProperties.getClientName());
+		}
+		redisOptions.database(redisProperties.getDatabase());
+		redisOptions.password(redisProperties.getPassword());
+		redisOptions.ssl(redisProperties.isSsl());
 	}
 
 	private void loadCategoriesAndStyles() {
