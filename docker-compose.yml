@@ -1,39 +1,32 @@
-# Docker Compose file Reference (https://docs.docker.com/compose/compose-file/)
-
 version: '3.7'
 
-# Define services
 services:
-  # App backend service
   server:
-    # Configuration for building the docker image for the backend service
     build:
-      context: server # Use an image built from the specified dockerfile in the `server` directory.
+      context: server
       dockerfile: Dockerfile
     restart: always
     depends_on:
-      - redisearch # This service depends on redisearch. Start that first.
-    environment: # Pass environment variables to the service
+      - redisearch
+    environment:
       SPRING_REDIS_HOST: redisearch
       STOMP_PORT: 80 
-    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+    networks:
       - backend
       - frontend
 
-  # Frontend Service 
   client:
     build:
-      context: client # Use an image built from the specified dockerfile in the `client` directory.
+      context: client
       dockerfile: Dockerfile
     ports:
-      - "80:80" # Forward the exposed port 80 on the container to port 80 on the host machine
+      - "80:80"
     restart: always
     depends_on:
       - server
     networks:
       - frontend
 
-  # RediSearch Service
   redisearch:
     image: redislabs/redisearch:latest
     restart: always
@@ -42,7 +35,6 @@ services:
     networks:
       - backend
 
-# Networks to be created to facilitate communication between containers
 networks:
   backend:
   frontend:
