@@ -1,22 +1,22 @@
-<form (ngSubmit)="search(0,50)" class="search-form">
-	<div fxLayout="row" fxLayoutGap="10px">
-		<mat-form-field hintLabel="RediSearch query" fxFlex="90">
-			<input matInput placeholder="Query" [formControl]="searchField">
-			<button *ngIf="searchField.value" mat-button matSuffix mat-icon-button type="button" aria-label="Clear"
-				(click)="searchField.setValue('')">
-				<mat-icon>close</mat-icon>
+<div class="main-panel">
+	<form (ngSubmit)="search(0,50)" class="search-panel">
+		<div class="search-bar">
+			<mat-form-field hintLabel="Enter a RediSearch query" class="query">
+				<input matInput placeholder="Search" [formControl]="searchField">
+				<button *ngIf="searchField.value" mat-button matSuffix mat-icon-button type="button" aria-label="Clear"
+					(click)="searchField.setValue('')">
+					<mat-icon>close</mat-icon>
+				</button>
+			</mat-form-field>
+			<button mat-flat-button type="submit" class="submit">
+				<mat-icon>search</mat-icon>
 			</button>
-		</mat-form-field>
-		<button mat-raised-button color="primary" type="submit" class="submit">Submit</button>
-	</div>
-	<mat-accordion>
-		<mat-expansion-panel>
-			<mat-expansion-panel-header>
-				<mat-panel-title>
-					Criteria
-				</mat-panel-title>
-			</mat-expansion-panel-header>
-			<div fxLayout="row" fxLayoutGap="10px">
+			<mat-button-toggle type="button" (click)="toggleFilters()" class="filter-button">
+				<mat-icon>filter_list</mat-icon>
+			</mat-button-toggle>
+		</div>
+		<div *ngIf="showFilters" class="filter-panel" fxLayoutGap="10px">
+			<div class="category-panel">
 				<mat-form-field>
 					<mat-label>Category</mat-label>
 					<mat-select [formControl]="categoryField">
@@ -30,17 +30,8 @@
 						<mat-option *ngFor="let style of styles" [value]="style.id">{{style.name}}</mat-option>
 					</mat-select>
 				</mat-form-field>
-				<mat-form-field hintLabel="Type a few characters">
-					<input matInput placeholder="Brewery" aria-label="Brewery" [matAutocomplete]="autoBrewery"
-						[formControl]="breweryField">
-					<mat-autocomplete #autoBrewery="matAutocomplete" [displayWith]="displayBrewery"
-						(optionSelected)='brewerySelected($event.option.value)'>
-						<mat-option *ngFor="let brewery of breweries" [value]="brewery">
-							<img class="brewery-img" aria-hidden [src]="brewery.icon" height="25">
-							<span>{{brewery.name}}</span>
-						</mat-option>
-					</mat-autocomplete>
-				</mat-form-field>
+			</div>
+			<div class="abv-panel">
 				<mat-form-field>
 					<mat-label>ABV</mat-label>
 					<mat-select [formControl]="abvField">
@@ -63,6 +54,19 @@
 						<mat-option value="120-inf">> 120</mat-option>
 					</mat-select>
 				</mat-form-field>
+			</div>
+			<div class="brewery-panel">
+				<mat-form-field hintLabel="Type a few characters">
+					<input matInput placeholder="Brewery" aria-label="Brewery" [matAutocomplete]="autoBrewery"
+						[formControl]="breweryField">
+					<mat-autocomplete #autoBrewery="matAutocomplete" [displayWith]="displayBrewery"
+						(optionSelected)='brewerySelected($event.option.value)'>
+						<mat-option *ngFor="let brewery of breweries" [value]="brewery">
+							<img class="brewery-img" aria-hidden [src]="brewery.icon" height="25">
+							<span>{{brewery.name}}</span>
+						</mat-option>
+					</mat-autocomplete>
+				</mat-form-field>
 				<mat-form-field hintLabel="Type a few characters">
 					<input matInput placeholder="Food pairing" aria-label="Food" [matAutocomplete]="autoFood"
 						[formControl]="foodField">
@@ -74,14 +78,7 @@
 					</mat-autocomplete>
 				</mat-form-field>
 			</div>
-		</mat-expansion-panel>
-		<mat-expansion-panel>
-			<mat-expansion-panel-header>
-				<mat-panel-title>
-					Sort options
-				</mat-panel-title>
-			</mat-expansion-panel-header>
-			<div fxLayout="row" fxLayoutGap="10px">
+			<div class="sort-panel">
 				<mat-form-field>
 					<mat-label>Sort by</mat-label>
 					<mat-select [(value)]="sortByField">
@@ -97,42 +94,44 @@
 					</mat-select>
 				</mat-form-field>
 			</div>
-		</mat-expansion-panel>
-	</mat-accordion>
-</form>
+		</div>
+	</form>
 
-<div *ngIf="result$ | async as results">
-	<div fxLayout="row" class="paginator">
-		<mat-paginator [length]="results.count" [pageIndex]="results.pageIndex" [pageSize]="results.pageSize"
-			[pageSizeOptions]="[10, 50, 100]" (page)="handlePage($event)">
-		</mat-paginator>
-		<div class="mat-paginator">
-			<div class="mat-paginator-outer-container">
-				<div class="mat-paginator-container">
-					<div class="duration">{{results.duration | number}} seconds</div>
+	<div *ngIf="showResults" class="results-panel">
+
+		<div fxLayout="row" class="paginator">
+			<mat-paginator [length]="resultCount" [pageIndex]="pageIndex" [pageSize]="pageSize"
+				[pageSizeOptions]="[10, 50, 100]" (page)="handlePage($event)">
+			</mat-paginator>
+			<div class="mat-paginator">
+				<div class="mat-paginator-outer-container">
+					<div class="mat-paginator-container">
+						<div class="duration">{{searchDuration | number}} seconds</div>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-
-	<div fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap="10px" ngClass.gt-xs="ml-10">
-		<mat-card *ngFor="let product of results.results" fxFlex.sm="0 1 calc(50%-10px)" fxFlex.md="0 1 calc(33%-10px)"
-			fxFlex.gt-md="0 1 calc(20%-10px)">
-			<mat-card-title [innerHTML]="product.name"></mat-card-title>
-			<mat-card-subtitle>
-				<span [innerHTML]="product.breweryName"></span>
-				<span> • </span>
-				<span>{{product.abv ? product.abv : '?'}}%</span>
-				<span> • </span>
-				<span>IBU: {{product.ibu ? product.ibu : '?'}}</span>
-			</mat-card-subtitle>
-			<img mat-card-image
-				src="{{ product.hasOwnProperty('labels.medium') ? product['labels.medium'] : 'assets/brewdis.svg' }}"
-				class="image">
-			<mat-card-actions>
-				<button mat-button (click)="openDescriptionDialog(product)" color="basic">Details</button>
-				<button mat-button [routerLink]="['/availability', product.sku]" color="primary">Availability</button>
-			</mat-card-actions>
-		</mat-card>
+		<div *ngIf="result$ | async as results" fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap="10px"
+			ngClass.gt-xs="ml-10">
+			<mat-card *ngFor="let product of results.results" fxFlex.sm="0 1 calc(50%-10px)"
+				fxFlex.md="0 1 calc(33%-10px)" fxFlex.gt-md="0 1 calc(20%-10px)">
+				<mat-card-title [innerHTML]="product.name"></mat-card-title>
+				<mat-card-subtitle>
+					<span [innerHTML]="product.breweryName"></span>
+					<span> • </span>
+					<span>{{product.abv ? product.abv : '?'}}%</span>
+					<span> • </span>
+					<span>IBU: {{product.ibu ? product.ibu : '?'}}</span>
+				</mat-card-subtitle>
+				<img mat-card-image
+					src="{{ product.hasOwnProperty('labels.medium') ? product['labels.medium'] : 'assets/brewdis.svg' }}"
+					class="image">
+				<mat-card-actions>
+					<button mat-button (click)="openDescriptionDialog(product)" color="basic">Details</button>
+					<button mat-button [routerLink]="['/availability', product.sku]"
+						color="primary">Availability</button>
+				</mat-card-actions>
+			</mat-card>
+		</div>
 	</div>
 </div>

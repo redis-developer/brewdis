@@ -1,9 +1,52 @@
-.search-form {
-	margin: 10px;
+.main-panel {
+	margin: 20px;
+}
+
+.search-panel {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin-bottom: 10px;
+}
+
+.search-bar {
+	display: flex;
+	flex-direction: row;
+}
+
+.query {
+	flex-grow: 1;
 }
 
 .submit {
-	height: 3em;
+	flex-shrink: 1;
+}
+
+.filter-button {
+	flex-shrink: 1;
+}
+
+.filter-panel {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+.category-panel {
+	display: flex;
+	flex-direction: column;
+	flex-basis: 20%;
+}
+
+.abv-panel {
+	display: flex;
+	flex-direction: column;
+}
+
+.brewery-panel {
+	display: flex;
+	flex-direction: column;
+	flex-basis: 30%;
 }
 
 .brewery-img {
@@ -11,8 +54,13 @@
 	margin-right: 8px;
 }
 
-.paginator {
-	justify-content: left;
+.sort-panel {
+	display: flex;
+	flex-direction: column;
+}
+
+.results-panel {
+	background: #fafafa;
 }
 
 .mat-paginator {

@@ -21,6 +21,8 @@ export class CatalogComponent implements OnInit {
   foods: Observable<any>;
   sortByField = 'name';
   sortByDirection = 'Ascending';
+  showFilters = false;
+  showSort = false;
   categoryField = new FormControl();
   categories = [];
   styleField = new FormControl();
@@ -31,7 +33,10 @@ export class CatalogComponent implements OnInit {
   foodField = new FormControl();
   labelField = new FormControl();
   searchField = new FormControl();
+  showResults = false;
   result$: Observable<any> = null;
+  resultCount = 0;
+  searchDuration = 0;
   lat = 34.0030;
   lng = -118.4298;
   pageIndex = 0;
@@ -85,6 +90,14 @@ export class CatalogComponent implements OnInit {
     }
   }
 
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
+  }
+
+  toggleSort() {
+    this.showSort = !this.showSort;
+  }
+
   addQueryCriteria(criteria: string) {
     const query = this.searchField.value ? this.searchField.value + ' ' : '';
     this.searchField.setValue(query + criteria);
@@ -99,9 +112,15 @@ export class CatalogComponent implements OnInit {
       pageSize
     };
     this.result$ = this.searchService.products(queryObject, this.lng, this.lat).pipe(share());
+    this.result$.subscribe(r => {this.resultCount = r.count; this.searchDuration = r.duration; });
+    this.showResults = true;
+    this.pageIndex = pageIndex;
+    this.pageSize = pageSize;
   }
 
   public handlePage(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.search(event.pageIndex, event.pageSize);
   }
 
