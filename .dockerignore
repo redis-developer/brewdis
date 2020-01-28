@@ -1,0 +1,8 @@
+data
+docs
+brewdis-ui/node_modules
+brewdis-ui/dist
+brewdis-ui/build
+brewdis-api/build
+.git
+.gitignore

@@ -1,0 +1,3 @@
+rootProject.name = 'brewdis'
+
+include 'brewdis-api', 'brewdis-ui'
