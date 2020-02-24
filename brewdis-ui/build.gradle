@@ -11,6 +11,7 @@ node {
 }
 
 repositories {
+	mavenCentral()
 	mavenLocal()
 }
 
