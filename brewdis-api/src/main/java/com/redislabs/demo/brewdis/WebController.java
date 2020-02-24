@@ -34,6 +34,7 @@ import com.redislabs.lettusearch.search.HighlightOptions;
 import com.redislabs.lettusearch.search.Limit;
 import com.redislabs.lettusearch.search.SearchOptions;
 import com.redislabs.lettusearch.search.SearchOptions.SearchOptionsBuilder;
+import com.redislabs.lettusearch.search.SearchResult;
 import com.redislabs.lettusearch.search.SearchResults;
 import com.redislabs.lettusearch.search.SortBy;
 import com.redislabs.lettusearch.search.TagOptions;
@@ -90,6 +91,7 @@ class WebController {
 	public ResultsPage products(@RequestBody Query query,
 			@RequestParam(name = "longitude", required = true) Double longitude,
 			@RequestParam(name = "latitude", required = true) Double latitude, HttpSession session) {
+		log.info("Searching for products around lon={} lat={}", longitude, latitude);
 		SearchOptionsBuilder options = SearchOptions.builder()
 				.highlight(HighlightOptions.builder().field(PRODUCT_NAME).field(PRODUCT_DESCRIPTION)
 						.field(CATEGORY_NAME).field(STYLE_NAME).field(BREWERY_NAME)
@@ -162,19 +164,20 @@ class WebController {
 		if (sku != null) {
 			query += " " + config.tag(PRODUCT_ID, sku);
 		}
+		log.info("Searching for availability: {}", query);
 		SearchResults<String, String> results = connection.sync().search(config.getInventory().getIndex(), query,
 				SearchOptions.builder().limit(Limit.builder().num(config.getInventory().getSearchLimit()).build())
 						.build());
-		results.forEach(r -> {
-			String atpString = r.get(AVAILABLE_TO_PROMISE);
-			if (atpString == null) {
-				return;
-			}
-			int availableToPromise = Integer.parseInt(atpString);
-			r.put(LEVEL, config.getInventory().level(availableToPromise));
-		});
+		results.forEach(r -> r.put(LEVEL, config.getInventory().level(availableToPromise(r))));
 		return results;
 
+	}
+
+	private int availableToPromise(SearchResult<String, String> result) {
+		if (result.containsKey(AVAILABLE_TO_PROMISE)) {
+			return Integer.parseInt(result.get(AVAILABLE_TO_PROMISE));
+		}
+		return 0;
 	}
 
 	private String geoCriteria(Double longitude, Double latitude) {

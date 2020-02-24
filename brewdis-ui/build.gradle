@@ -1,12 +1,17 @@
 plugins {
   id 'java'
   id 'com.github.node-gradle.node' version '2.2.0'
+  id 'maven-publish'
 }
 
 node {
   version = '13.6.0'
   npmVersion = '6.13.4'
   download = true
+}
+
+repositories {
+	mavenLocal()
 }
 
 jar.dependsOn 'npm_run_build'
