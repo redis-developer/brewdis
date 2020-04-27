@@ -80,6 +80,7 @@ image::http://pages.brewdis.demo.redislabs.com/images/filter_list-24px.svg[]
 
 The app server is built with Spring Boot which can be configured different ways: https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-external-config[Spring Boot Externalized Configuration].
 Depending on the way you're running the demo you can either:
+
 - create a `application.properties` file based on the one that ships with Brewdis: https://github.com/Redislabs-Solution-Architects/brewdis/blob/master/brewdis-api/src/main/resources/application.properties[`brewdis-api/src/main/resources/application.properties`]
 - specify JVM arguments like this: `java -jar brewdis.jar --spring.redis.host=localhost --spring.redis.port=6379 ...`
 - use environment variables: `export spring.redis.host=localhost`
