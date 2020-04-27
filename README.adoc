@@ -74,16 +74,23 @@ image::http://pages.brewdis.demo.redislabs.com/images/filter_list-24px.svg[]
 . The *Available to Promise* field is updated in real-time based on current difference between supply (*On Hand*) and demand (*Reserved + Allocated + Virtual Hold*).
 
 
-== Develop
-
-=== Configuration
+== Configuration
 
 The app server is built with Spring Boot which can be configured different ways: https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-external-config[Spring Boot Externalized Configuration].
 Depending on the way you're running the demo you can either:
 
-- create a `application.properties` file based on the one that ships with Brewdis: https://github.com/Redislabs-Solution-Architects/brewdis/blob/master/brewdis-api/src/main/resources/application.properties[`brewdis-api/src/main/resources/application.properties`]
-- specify JVM arguments like this: `java -jar brewdis.jar --spring.redis.host=localhost --spring.redis.port=6379 ...`
-- use environment variables: `export spring.redis.host=localhost`
+- create a `application.properties` file based on the https://github.com/Redislabs-Solution-Architects/brewdis/blob/master/brewdis-api/src/main/resources/application.properties[one that ships with Brewdis]
+- specify JVM arguments like this:
+[source,shell]
+----
+java -jar brewdis.jar --spring.redis.host=localhost --spring.redis.port=6379 ...
+----
+- use environment variables:
+[source,shell]
+----
+export spring.redis.host=localhost
+java -jar brewdis.jar
+----
 
 Here are the most common configuration options for this demo:
 
@@ -95,7 +102,7 @@ Here are the most common configuration options for this demo:
 - `inventory.generator.rate`: duration in millis the generator should sleep between inventory updates (default: `100`)
 - `availability-radius`: radius to find in-store availability (default: `25 mi`)   
 
-=== Architecture
+== Architecture
 
 {empty} +
 
