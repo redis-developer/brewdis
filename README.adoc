@@ -88,7 +88,7 @@ Here are the most common configuration options for this demo:
 - `spring.redis.port`: Redis database port (default: `6379`)
 - `stomp.host`: Websocket server hostname (default: `localhost`)
 - `stomp.port`: Websocket server port (default: `8080`)
-- `stomp.protocol`: Websocket protocol (default: `ws`). Use `wss` for secure websockets)
+- `stomp.protocol`: Websocket protocol (default: `ws`). Use `wss` for secure websockets
 - `inventory.generator.rate`: duration in millis the generator should sleep between inventory updates (default: `100`)
 - `availability-radius`: radius to find in-store availability (default: `25 mi`)   
 
