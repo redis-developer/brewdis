@@ -80,7 +80,7 @@ image::http://pages.brewdis.demo.redislabs.com/images/filter_list-24px.svg[]
 
 The app server is built with Spring Boot which can be configured different ways: https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-external-config[Spring Boot Externalized Configuration]
 
-The default Brewdis app server configuration is stored in https://github.com/Redislabs-Solution-Architects/brewdis/tree/master/brewdis-api/src/main/resources[`brewdis-api/src/main/resources/application.properties`]
+The default Brewdis app server configuration is stored in https://github.com/Redislabs-Solution-Architects/brewdis/blob/master/brewdis-api/src/main/resources/application.properties[`brewdis-api/src/main/resources/application.properties`]
 
 Here are the most common configuration options for this demo:
 
