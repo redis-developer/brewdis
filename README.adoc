@@ -78,12 +78,17 @@ image::http://pages.brewdis.demo.redislabs.com/images/filter_list-24px.svg[]
 
 === Configuration
 
-The app server configuration is stored in `server/src/main/resources/application.properties`
+The app server is built with Spring Boot which can be configured different ways: https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-external-config[Spring Boot Externalized Configuration]
 
-Here are the most common configuration options:
+The default Brewdis app server configuration is stored in `brewdis-api/src/main/resources/application.properties`
+
+Here are the most common configuration options for this demo:
 
 - `spring.redis.host`: Redis database hostname (default: `localhost`)
 - `spring.redis.port`: Redis database port (default: `6379`)
+- `stomp.host`: Websocket server hostname (default: `localhost`)
+- `stomp.port`: Websocket server port (default: `8080`)
+- `stomp.protocol`: Websocket protocol (default: `ws`). Use `wss` for secure websockets)
 - `inventory.generator.rate`: duration in millis the generator should sleep between inventory updates (default: `100`)
 - `availability-radius`: radius to find in-store availability (default: `25 mi`)   
 
