@@ -89,6 +89,8 @@ java -jar brewdis.jar --spring.redis.host=localhost --spring.redis.port=6379 ...
 [source,shell]
 ----
 export spring.redis.host=localhost
+export spring.redis.port=8080
+export ...
 java -jar brewdis.jar
 ----
 
