@@ -194,7 +194,7 @@ class WebController {
 		private String id;
 		private String icon;
 	}
-
+/*
 	@GetMapping("/breweries")
 	public Stream<BrewerySuggestion> suggestBreweries(
 			@RequestParam(name = "prefix", defaultValue = "", required = false) String prefix) {
@@ -224,5 +224,5 @@ class WebController {
 						.fuzzy(config.getProduct().getFoodPairings().isFuzzy()).build());
 		return results.stream().map(s -> s.string());
 	}
-
+*/
 }

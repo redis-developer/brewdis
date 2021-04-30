@@ -247,6 +247,7 @@ public class DataLoader implements InitializingBean {
 
 	private void loadBreweries() {
 		RediSearchCommands<String, String> commands = connection.sync();
+/*
 		try {
 			Long length = commands.suglen(config.getProduct().getBrewery().getIndex());
 			if (length != null && length > 0) {
@@ -281,10 +282,12 @@ public class DataLoader implements InitializingBean {
 			commands.sugadd(config.getProduct().getBrewery().getIndex(), breweryName, count, payload);
 		});
 		log.info("Loaded {} breweries", results.size());
+*/		
 	}
 
 	private void loadFoodPairings() throws IOException, URISyntaxException {
 		RediSearchCommands<String, String> commands = connection.sync();
+/*		
 		commands.del(config.getProduct().getFoodPairings().getIndex());
 		log.info("Loading food pairings");
 		String index = config.getProduct().getIndex();
@@ -305,6 +308,7 @@ public class DataLoader implements InitializingBean {
 					});
 		});
 		log.info("Loaded {} food pairings", results.size());
+*/		
 	}
 
 	private String clean(String food) {
