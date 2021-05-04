@@ -15,7 +15,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
-    implementation 'com.redislabs:spring-redisearch:1.12.1'
+    // implementation 'com.redislabs:spring-redisearch:1.12.1'
+    implementation 'com.redislabs:spring-redisearch:2.0.1'
+    // implementation 'com.redislabs:lettusearch:3.1.2'
+
     implementation ('com.redislabs:riot:1.8.1') {
         exclude group: 'org.slf4j', module: 'slf4j-jdk14'
     }

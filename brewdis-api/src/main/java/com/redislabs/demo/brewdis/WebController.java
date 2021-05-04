@@ -34,12 +34,12 @@ import com.redislabs.lettusearch.search.HighlightOptions;
 import com.redislabs.lettusearch.search.Limit;
 import com.redislabs.lettusearch.search.SearchOptions;
 import com.redislabs.lettusearch.search.SearchOptions.SearchOptionsBuilder;
-import com.redislabs.lettusearch.search.SearchResult;
+// import com.redislabs.lettusearch.search.SearchResult;
 import com.redislabs.lettusearch.search.SearchResults;
 import com.redislabs.lettusearch.search.SortBy;
 import com.redislabs.lettusearch.search.TagOptions;
-import com.redislabs.lettusearch.suggest.SuggestGetOptions;
-import com.redislabs.lettusearch.suggest.SuggestResult;
+// import com.redislabs.lettusearch.suggest.SuggestGetOptions;
+// import com.redislabs.lettusearch.suggest.SuggestResult;
 
 import lombok.Builder;
 import lombok.Data;
@@ -172,11 +172,11 @@ class WebController {
 		return results;
 
 	}
-
-	private int availableToPromise(SearchResult<String, String> result) {
-		if (result.containsKey(AVAILABLE_TO_PROMISE)) {
-			return Integer.parseInt(result.get(AVAILABLE_TO_PROMISE));
-		}
+	private int availableToPromise(SearchResults<String, String> results) {
+	// private int availableToPromise(SearchResult<String, String> result) {
+		// if (result.containsKey(AVAILABLE_TO_PROMISE)) {
+		// 	return Integer.parseInt(result.get(AVAILABLE_TO_PROMISE));
+		// }
 		return 0;
 	}
 
