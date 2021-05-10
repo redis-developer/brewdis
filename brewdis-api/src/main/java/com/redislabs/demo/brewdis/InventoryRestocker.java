@@ -92,8 +92,11 @@ public class InventoryRestocker
 				@Override
 				public void run() {
 					int delta = restockOnHands.nextInt();
-					template.opsForStream().add(config.getInventory().getUpdateStream(),
-							Map.of(STORE_ID, store, PRODUCT_ID, sku, ON_HAND, String.valueOf(delta)));
+					Map<String,String> message = new HashMap<>();
+					message.put(STORE_ID, store);
+					message.put(PRODUCT_ID, sku);
+					message.put(ON_HAND, String.valueOf(delta));
+					template.opsForStream().add(config.getInventory().getUpdateStream(), message);
 					scheduledRestocks.remove(id);
 				}
 			}, delay, TimeUnit.SECONDS);
