@@ -20,7 +20,7 @@ export class CatalogComponent implements OnInit {
   breweries: Observable<any>;
   foods: Observable<any>;
   sortByField = 'name';
-  sortByDirection = 'Ascending';
+  sortByDirection = 'ASC';
   showFilters = false;
   showSort = false;
   categoryField = new FormControl();

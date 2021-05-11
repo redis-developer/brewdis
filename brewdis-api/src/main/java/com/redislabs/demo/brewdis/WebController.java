@@ -1,39 +1,21 @@
 package com.redislabs.demo.brewdis;
 
-import static com.redislabs.demo.brewdis.BrewdisField.AVAILABLE_TO_PROMISE;
-import static com.redislabs.demo.brewdis.BrewdisField.BREWERY_NAME;
-import static com.redislabs.demo.brewdis.BrewdisField.CATEGORY_NAME;
-import static com.redislabs.demo.brewdis.BrewdisField.LEVEL;
-import static com.redislabs.demo.brewdis.BrewdisField.LOCATION;
-import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_DESCRIPTION;
-import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_ID;
-import static com.redislabs.demo.brewdis.BrewdisField.PRODUCT_NAME;
-import static com.redislabs.demo.brewdis.BrewdisField.STORE_ID;
-import static com.redislabs.demo.brewdis.BrewdisField.STYLE_NAME;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.redislabs.demo.brewdis.Config.StompConfig;
+import com.redislabs.mesclun.StatefulRedisModulesConnection;
+import com.redislabs.mesclun.search.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpSession;
-
-import com.redislabs.mesclun.StatefulRedisModulesConnection;
-import com.redislabs.mesclun.search.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.redislabs.demo.brewdis.Config.StompConfig;
-
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import static com.redislabs.demo.brewdis.BrewdisField.*;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -87,11 +69,10 @@ class WebController {
         SearchOptions.SearchOptionsBuilder options = SearchOptions.builder()
                 .highlight(SearchOptions.Highlight.builder().field(PRODUCT_NAME).field(PRODUCT_DESCRIPTION)
                         .field(CATEGORY_NAME).field(STYLE_NAME).field(BREWERY_NAME)
-                        .tags(SearchOptions.Highlight.Tags.builder().open("<mark>").close("</mark>").build()).build())
-                .limit(SearchOptions.Limit.builder().offset(query.getOffset()).num(query.getPageSize()).build());
+                        .tags(SearchOptions.Tags.builder().open("<mark>").close("</mark>").build()).build())
+                .limit(SearchOptions.Limit.offset(query.getOffset()).num(query.getPageSize()));
         if (query.getSortByField() != null) {
-            options.sortBy(SearchOptions.SortBy.builder().field(query.getSortByField())
-                    .direction(SearchOptions.SortBy.Direction.valueOf(query.getSortByDirection())).build());
+            options.sortBy(SearchOptions.SortBy.field(query.getSortByField()).order(Order.valueOf(query.getSortByDirection())));
         }
         String queryString = query.getQuery() == null || query.getQuery().length() == 0 ? "*" : query.getQuery();
         long startTime = System.currentTimeMillis();
@@ -146,8 +127,8 @@ class WebController {
             query += " " + config.tag(STORE_ID, store);
         }
         return connection.sync().search(config.getInventory().getIndex(), query,
-                SearchOptions.builder().sortBy(SearchOptions.SortBy.builder().field(STORE_ID).field(PRODUCT_ID).build())
-                        .limit(SearchOptions.Limit.builder().num(config.getInventory().getSearchLimit()).build()).build());
+                SearchOptions.builder().sortBy(SearchOptions.SortBy.field(STORE_ID).order(Order.ASC))
+                        .limit(SearchOptions.Limit.offset(0).num(config.getInventory().getSearchLimit())).build());
     }
 
     @GetMapping("/availability")
@@ -160,7 +141,7 @@ class WebController {
         }
         log.info("Searching for availability: {}", query);
         SearchResults<String, String> results = connection.sync().search(config.getInventory().getIndex(), query,
-                SearchOptions.builder().limit(SearchOptions.Limit.builder().num(config.getInventory().getSearchLimit()).build())
+                SearchOptions.builder().limit(SearchOptions.Limit.offset(0).num(config.getInventory().getSearchLimit()))
                         .build());
         results.forEach(r -> r.put(LEVEL, config.getInventory().level(availableToPromise(r))));
         return results;

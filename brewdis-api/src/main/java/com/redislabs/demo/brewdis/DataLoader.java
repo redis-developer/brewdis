@@ -9,6 +9,10 @@ import com.redislabs.mesclun.RedisModulesAsyncCommands;
 import com.redislabs.mesclun.RedisModulesCommands;
 import com.redislabs.mesclun.StatefulRedisModulesConnection;
 import com.redislabs.mesclun.search.*;
+import com.redislabs.mesclun.search.aggregate.GroupBy;
+import com.redislabs.mesclun.search.aggregate.Limit;
+import com.redislabs.mesclun.search.aggregate.SortBy;
+import com.redislabs.mesclun.search.aggregate.reducers.CountDistinct;
 import com.redislabs.riot.ProcessorOptions;
 import com.redislabs.riot.RedisOptions;
 import com.redislabs.riot.file.FileImportCommand;
@@ -192,8 +196,8 @@ public class DataLoader implements InitializingBean {
         String index = config.getProduct().getIndex();
         AggregateResults<String> results = commands.aggregate(index, "*",
                 AggregateOptions.builder().load(CATEGORY_NAME)
-                        .operation(AggregateOptions.Operation.GroupBy.builder().property(CATEGORY_ID).property(CATEGORY_NAME)
-                                .reducer(AggregateOptions.Operation.GroupBy.Reducer.CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+                        .operation(GroupBy.properties(CATEGORY_ID, CATEGORY_NAME)
+                                .reducer(CountDistinct.property(PRODUCT_ID).as(COUNT).build()).build())
                         .build());
         this.categories = results.stream()
                 .map(r -> Category.builder().id((String) r.get(CATEGORY_ID)).name((String) r.get(CATEGORY_NAME)).build())
@@ -204,8 +208,8 @@ public class DataLoader implements InitializingBean {
             AggregateResults<String> styleResults = commands.aggregate(index,
                     config.tag(CATEGORY_ID, category.getId()),
                     AggregateOptions.builder().load(STYLE_NAME)
-                            .operation(AggregateOptions.Operation.GroupBy.builder().property(STYLE_ID).property(STYLE_NAME)
-                                    .reducer(AggregateOptions.Operation.GroupBy.Reducer.CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+                            .operation(GroupBy.properties(STYLE_ID, STYLE_NAME)
+                                    .reducer(CountDistinct.property(PRODUCT_ID).as(COUNT).build()).build())
                             .build());
             List<Style> styleList = styleResults.stream()
                     .map(r -> Style.builder().id((String) r.get(STYLE_ID)).name((String) r.get(STYLE_NAME)).build())
@@ -229,8 +233,8 @@ public class DataLoader implements InitializingBean {
         log.info("Loading breweries");
         AggregateResults<String> results = commands.aggregate(config.getProduct().getIndex(), "*",
                 AggregateOptions.builder().load(BREWERY_NAME).load(BREWERY_ICON)
-                        .operation(AggregateOptions.Operation.GroupBy.builder().property(BREWERY_ID).property(BREWERY_NAME).property(BREWERY_ICON)
-                                .reducer(AggregateOptions.Operation.GroupBy.Reducer.CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
+                        .operation(GroupBy.properties(BREWERY_ID, BREWERY_NAME, BREWERY_ICON)
+                                .reducer(CountDistinct.property(PRODUCT_ID).as(COUNT).build()).build())
                         .build());
         ObjectMapper mapper = new ObjectMapper();
         results.forEach(r -> {
@@ -259,9 +263,9 @@ public class DataLoader implements InitializingBean {
         log.info("Loading food pairings");
         String index = config.getProduct().getIndex();
         AggregateResults<String> results = sync.aggregate(index, "*", AggregateOptions.builder()
-                .operation(AggregateOptions.Operation.GroupBy.builder().property(FOOD_PAIRINGS).reducer(AggregateOptions.Operation.GroupBy.Reducer.CountDistinct.builder().property(PRODUCT_ID).as(COUNT).build()).build())
-                .operation(AggregateOptions.Operation.SortBy.builder().property(AggregateOptions.Operation.SortBy.Property.builder().property(COUNT).order(AggregateOptions.Operation.Order.Desc).build()).build())
-                .operation(AggregateOptions.Operation.Limit.builder().num(config.getProduct().getFoodPairings().getLimit()).build()).build());
+                .operation(GroupBy.property(FOOD_PAIRINGS).reducer(CountDistinct.property(PRODUCT_ID).as(COUNT).build()).build())
+                .operation(SortBy.property(SortBy.Property.name(COUNT).order(Order.DESC)).build())
+                .operation(Limit.offset(0).num(config.getProduct().getFoodPairings().getLimit())).build());
         try (StatefulRedisModulesConnection<String, String> connection = pool.borrowObject()) {
             RedisModulesAsyncCommands<String, String> async = connection.async();
             async.setAutoFlushCommands(false);

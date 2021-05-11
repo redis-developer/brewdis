@@ -147,7 +147,7 @@ public class InventoryManager implements InitializingBean, DisposableBean, Strea
         String index = config.getInventory().getIndex();
         RedisModulesCommands<String, String> commands = connection.sync();
         SearchResults<String, String> results = commands.search(index, query, SearchOptions.builder().noContent(true)
-                .limit(SearchOptions.Limit.builder().num(config.getInventory().getCleanup().getSearchLimit()).build()).build());
+                .limit(SearchOptions.Limit.offset(0).num(config.getInventory().getCleanup().getSearchLimit())).build());
         if (!results.isEmpty()) {
             log.info("Deleting {} docs", results.size());
             commands.del(results.stream().map(Document::getId).toArray(String[]::new));
