@@ -84,7 +84,7 @@ public class DataLoader implements InitializingBean {
         try {
             IndexInfo<String, String> info = RediSearchUtils.getInfo(commands.indexInfo(index));
             if (info.getNumDocs() >= config.getStore().getCount()) {
-                log.info("Found {} stores - skipping load", info.getNumDocs());
+                log.info("Found {} stores - skipping load", Math.round(info.getNumDocs()));
                 return;
             }
             commands.dropIndex(index);
@@ -128,7 +128,7 @@ public class DataLoader implements InitializingBean {
         try {
             IndexInfo<String, String> info = RediSearchUtils.getInfo(commands.indexInfo(index));
             if (info.getNumDocs() >= config.getProduct().getLoad().getCount()) {
-                log.info("Found {} products - skipping load", info.getNumDocs());
+                log.info("Found {} products - skipping load", Math.round(info.getNumDocs()));
                 return;
             }
             commands.dropIndex(index);
