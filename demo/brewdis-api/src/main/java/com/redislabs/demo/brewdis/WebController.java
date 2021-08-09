@@ -26,7 +26,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,6 +40,7 @@ import static com.redislabs.demo.brewdis.BrewdisField.*;
 @Slf4j
 class WebController {
 
+    private final Random random = new Random();
     @Autowired
     private Config config;
     @Autowired
@@ -68,9 +71,27 @@ class WebController {
         long startTime = System.currentTimeMillis();
         SearchResults<String, String> searchResults = connection.sync().search(config.getProduct().getIndex(), queryString, options.build());
         long endTime = System.currentTimeMillis();
+        ResultsPage results = new ResultsPage();
+        results.setCount(searchResults.getCount());
+        results.setResults(searchResults);
+        results.setPageIndex(query.getPageIndex());
+        results.setPageSize(query.getPageSize());
+        results.setDuration(((float) (endTime - startTime)) / 1000);
+        generateDemand(session, longitude, latitude, searchResults);
+        return results;
+    }
+
+    private void generateDemand(HttpSession session, Double longitude, Double latitude, SearchResults<String, String> searchResults) {
         List<String> skus = searchResults.stream().limit(config.getInventory().getGenerator().getSkusMax()).map(r -> r.get(PRODUCT_ID)).collect(Collectors.toList());
-        List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude))
-                .stream().map(r -> r.get(STORE_ID)).collect(Collectors.toList());
+        if (skus.isEmpty()) {
+            log.warn("No SKUs found to generate demand");
+            return;
+        }
+        List<String> stores = connection.sync().search(config.getStore().getIndex(), geoCriteria(longitude, latitude)).stream().limit(config.getInventory().getGenerator().getStoresMax()).map(r -> r.get(STORE_ID)).collect(Collectors.toList());
+        if (stores.isEmpty()) {
+            log.warn("No store found to generate demand");
+            return;
+        }
         RedisModulesCommands<String, String> sync = connection.sync();
         sync.sadd("sessions", session.getId());
         String storesKey = "session:stores:" + session.getId();
@@ -79,13 +100,7 @@ class WebController {
         String skusKey = "session:skus:" + session.getId();
         sync.sadd(skusKey, skus.toArray(new String[0]));
         sync.expire(skusKey, config.getInventory().getGenerator().getRequestDurationInSeconds());
-        ResultsPage results = new ResultsPage();
-        results.setCount(searchResults.getCount());
-        results.setResults(searchResults);
-        results.setPageIndex(query.getPageIndex());
-        results.setPageSize(query.getPageSize());
-        results.setDuration(((float) (endTime - startTime)) / 1000);
-        return results;
+
     }
 
     @GetMapping("/styles")

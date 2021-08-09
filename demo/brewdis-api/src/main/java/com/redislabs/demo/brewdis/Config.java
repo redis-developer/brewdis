@@ -122,6 +122,7 @@ public class Config {
 		private int virtualHoldMax;
 		private long requestDurationInSeconds;
 		private long skusMax;
+		private long storesMax;
 	}
 
 	@Data
