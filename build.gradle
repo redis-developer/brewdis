@@ -1,9 +1,73 @@
-allprojects {
-    group = 'com.redislabs'
-    version = '1.0.0-SNAPSHOT'
+config {
+    info {
+        description = 'Brewdis Demo'
+        inceptionYear = '2020'
+        vendor = 'Redis Labs'
+        tags = ['redis', 'redisearch', 'inventory', 'real-time', 'retail']
+        links {
+            website = "https://github.com/redis-developer/${project.rootProject.name}"
+            issueTracker = "https://github.com/redis-developer/${project.rootProject.name}/issues"
+            scm = "https://github.com/redis-developer/${project.rootProject.name}.git"
+        }
+        scm {
+            url = "https://github.com/redis-developer/${project.rootProject.name}"
+            connection = "scm:git:https://github.com/redis-developer/${project.rootProject.name}.git"
+            developerConnection = "scm:git:git@github.com:redis-developer/${project.rootProject.name}.git"
+        }
+        specification {
+            enabled = true
+        }
+        implementation {
+            enabled = true
+        }
+        people {
+            person {
+                id = 'jruaux'
+                name = 'Julien Ruaux'
+                roles = ['developer', 'author']
+            }
+        }
+        publishing {
+            signing {
+                enabled = true
+            }
+        }
+    }
+    licensing {
+        enabled = false
+        licenses {
+            license {
+                id = 'Apache-2.0'
+            }
+        }
+    }
+    docs {
+        javadoc {
+            autoLinks {
+                enabled = false
+            }
+        }
+        sourceHtml {
+            enabled = false
+        }
+    }
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
+allprojects {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+    tasks.withType(GenerateModuleMetadata) {
+        enabled = false
+    }
+}
+
+subprojects {
+    config {
+        info {
+            description = project.project_description
+        }
+    }
 }

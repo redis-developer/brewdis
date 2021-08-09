@@ -1,21 +1,11 @@
 = Brewdis
-:idprefix:
-:idseparator: -
-ifndef::env-github[:icons: font]
-// URIs
-:project-repo: Redislabs-Solution-Architects/brewdis
-:uri-repo: https://github.com/{project-repo}
-// GitHub customization
-ifdef::env-github[]
-:badges:
-:tag: master
-:!toc-title:
-:tip-caption: :bulb:
-:note-caption: :paperclip:
-:important-caption: :heavy_exclamation_mark:
-:caution-caption: :fire:
-:warning-caption: :warning:
-endif::[]
+:linkattrs:
+:project-owner:   redis-developer
+:project-name:    brewdis
+:project-group:   com.redislabs
+:project-version: 0.1.0
+
+image:https://github.com/{project-owner}/{project-name}/actions/workflows/early-access.yml/badge.svg["Build Status", link="https://github.com/{project-owner}/{project-name}/actions/workflows/early-access.yml"]
 
 Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com].
 

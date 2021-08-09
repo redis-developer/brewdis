@@ -1,0 +1,73 @@
+project:
+  name: brewdis
+  description: Brewdis Demo
+  longDescription: Real-time inventory demo using Redis
+  website: https://github.com/redis-developer/brewdis
+  authors:
+    - Julien Ruaux
+  license: Apache-2.0
+  java:
+    groupId: com.redislabs
+    version: 8
+    multiProject: true
+  extraProperties:
+    inceptionYear: 2020
+
+release:
+  github:
+    branch: master
+    username: jruaux
+    overwrite: true
+    changelog:
+      sort: DESC
+      formatted: ALWAYS
+      format: '- {{commitShortHash}} {{commitTitle}}'
+      labelers:
+        - label: 'feature'
+          title: 'Resolves #'
+          body: 'Resolves #'
+        - label: 'issue'
+          title: 'Fixes #'
+          body: 'Fixes #'
+        - label: 'issue'
+          title: 'Relates to #'
+          body: 'Relates to #'
+        - label: 'task'
+          title: '[chore]'
+        - label: 'dependencies'
+          title: '[deps]'
+      categories:
+        - title: '🚀 Features'
+          labels:
+            - 'feature'
+        - title: '✅ Issues'
+          labels:
+            - 'issue'
+        - title: '🧰 Tasks'
+          labels:
+            - 'task'
+        - title: '⚙️ Dependencies'
+          labels:
+            - 'dependencies'
+      replacers:
+        - search: '\[chore\] '
+          replace: ''
+        - search: '\[deps\] '
+          replace: ''
+
+distributions:
+  brewdis:
+    type: SINGLE_JAR
+    artifacts:
+      - path: demo/brewdis-api/build/libs/brewdis-api-{{projectVersion}}.jar
+    docker:
+      active: always
+      registries:
+        - serverName: DEFAULT
+          username: jruaux
+      labels:
+        'org.opencontainers.image.title': 'brewdis'
+
+files:
+  artifacts:
+    - path: VERSION

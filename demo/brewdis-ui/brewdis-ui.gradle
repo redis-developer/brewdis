@@ -1,0 +1,10 @@
+node {
+  version = '13.6.0'
+  download = true
+}
+
+jar.dependsOn 'npm_run_build'
+
+jar {
+  from 'dist/brewdis-ui' into 'static'
+}
