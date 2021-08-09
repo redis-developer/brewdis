@@ -13,7 +13,7 @@ Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com]
 
 [source,shell]
 ----
-git clone https://github.com/Redislabs-Solution-Architects/brewdis.git
+git clone https://github.com/redis-developer/brewdis.git
 cd brewdis
 docker-compose up
 ----
@@ -69,7 +69,7 @@ image::docs/overview/src/docs/resources/images/filter_list-24px.svg[]
 The app server is built with Spring Boot which can be configured different ways: https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-external-config[Spring Boot Externalized Configuration].
 Depending on the way you're running the demo you can either:
 
-- create a `application.properties` file based on the https://github.com/Redislabs-Solution-Architects/brewdis/blob/master/brewdis-api/src/main/resources/application.properties[one that ships with Brewdis]
+- create a `application.properties` file based on the https://github.com/redis-developer/brewdis/blob/master/demo/brewdis-api/src/main/resources/application.properties[one that ships with Brewdis]
 - specify JVM arguments like this:
 [source,shell]
 ----
