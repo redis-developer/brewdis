@@ -61,7 +61,7 @@ distributions:
     artifacts:
       - path: demo/brewdis-api/build/libs/brewdis-api-{{projectVersion}}.jar
     docker:
-      active: always
+      active: never
       registries:
         - serverName: DEFAULT
           username: jruaux
