@@ -19,7 +19,7 @@ apply plugin: 'com.redislabs.gradle.redislabs-parentbuild'
 rootProject.name = 'brewdis'
 
 projects {
-    directories = ['demo']
+    directories = ['app']
 
     plugins {
         all {

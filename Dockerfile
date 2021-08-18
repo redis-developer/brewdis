@@ -10,6 +10,6 @@ EXPOSE 8080
 
 RUN mkdir /app
 
-COPY --from=build /app/demo/brewdis-api/build/libs/*.jar /app/brewdis.jar
+COPY --from=build /app/app/brewdis-api/build/libs/*.jar /app/brewdis.jar
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/brewdis.jar"]

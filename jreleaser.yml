@@ -59,7 +59,7 @@ distributions:
   brewdis:
     type: SINGLE_JAR
     artifacts:
-      - path: demo/brewdis-api/build/libs/brewdis-api-{{projectVersion}}.jar
+      - path: app/brewdis-api/build/libs/brewdis-api-{{projectVersion}}.jar
     docker:
       active: never
       registries:
