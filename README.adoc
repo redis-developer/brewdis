@@ -24,7 +24,7 @@ Access the demo at http://localhost[]
 
 === Presentation
 
-An overview of the business context and demo architecture is available at http://pages.brewdis.demo.redislabs.com/[pages.brewdis.demo.redislabs.com]
+An overview of the business context and demo architecture is available at https://redislabs-field-engineering.github.io/jrx-presos/inventory.html#/[redislabs-field-engineering.github.io/jrx-presos/inventory]
 
 TIP: Hit the `S` key to open speaker notes 
 
