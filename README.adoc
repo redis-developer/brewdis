@@ -43,10 +43,7 @@ TIP: `name`, `description`, `breweryName` are phonetic text fields so you will n
 `FT.SEARCH products chamb*`
 . Open http://localhost[]
 . Enter a simple keyword search, e.g. `chambly`. Note highlighted matches.
-. Expand the filter panel by clicking on the filter button
-+
-image::docs/overview/src/docs/resources/images/filter_list-24px.svg[]
-
+. Expand the filter panel by clicking on the filter button (image:https://pic.onlinewebfonts.com/svg/img_3152.png[width=24])
 . Enter some characters in the Brewery field to retrieve suggestions from RediSearch (e.g. `Unib`)
 . Click the `Submit` button
 . Refine the search by adding a constraint on the alcohol content (ABV field):
