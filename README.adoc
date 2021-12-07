@@ -3,7 +3,7 @@
 
 Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com].
 
-= Tech Stack
+== Tech Stack
 
 - Gradle 6.8.3
 - Kordamp Gradle plugins 0.46.0.
