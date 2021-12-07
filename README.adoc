@@ -1,13 +1,17 @@
 = Brewdis
-:linkattrs:
-:project-owner:   redis-developer
-:project-name:    brewdis
-:project-group:   com.redislabs
-:project-version: 0.1.0
 
-image:https://github.com/{project-owner}/{project-name}/actions/workflows/early-access.yml/badge.svg["Build Status", link="https://github.com/{project-owner}/{project-name}/actions/workflows/early-access.yml"]
 
 Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com].
+
+== Architecture
+
+{empty} +
+
+image::app/architecture.svg[Brewdis]
+
+{empty} +
+
+
 
 == Run the demo
 
@@ -92,10 +96,4 @@ Here are the most common configuration options for this demo:
 - `inventory.generator.rate`: duration in millis the generator should sleep between inventory updates (default: `100`)
 - `availability-radius`: radius to find in-store availability (default: `25 mi`)   
 
-== Architecture
 
-{empty} +
-
-image::app/architecture.svg[Brewdis]
-
-{empty} +
