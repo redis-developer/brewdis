@@ -23,7 +23,9 @@
   "redis_modules": [
     "RediSearch"
   ],
-  "app_image_urls": [],
+  "app_image_urls": [
+    "https://raw.githubusercontent.com/redis-developer/brewdis/master/brewdis.png"
+  ],
   "youtube_url": "",
   "special_tags": [
     "Hackathon"
