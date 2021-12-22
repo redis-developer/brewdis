@@ -16,7 +16,7 @@ Real-time inventory demo based on data from [https://brewerydb.com](brewerydb.co
 
 ## Architecture
 
-![image](app/architecture.svg)
+![image](https://raw.githubusercontent.com/redis-developer/brewdis/master/app/architecture.svg)
 
 
 
