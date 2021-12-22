@@ -1,9 +1,9 @@
-= Brewdis
+# Brewdis
 
 
 Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com].
 
-== Tech Stack
+## Tech Stack
 
 
 - Spring Boot
@@ -14,43 +14,46 @@ Real-time inventory demo based on data from https://brewerydb.com[brewerydb.com]
 
 
 
-== Architecture
+## Architecture
 
-{empty} +
-
-image::app/architecture.svg[Brewdis]
-
-{empty} +
+![image](app/architecture.svg)
 
 
 
-== Run the demo
 
-[source,shell]
-----
+
+## Run the demo
+
+```
 git clone https://github.com/redis-developer/brewdis.git
 cd brewdis
 docker-compose up
-----
+```
 
 Access the demo at http://localhost[]
 
-== Demo Steps
+## Demo Steps
 
-=== Presentation
+### Presentation
 
 An overview of the business context and demo architecture is available at https://redislabs-field-engineering.github.io/jrx-presos/inventory.html#/[redislabs-field-engineering.github.io/jrx-presos/inventory]
 
 TIP: Hit the `S` key to open speaker notes 
 
-=== Products
-. Launch `redis-cli`
-. Show number of documents in RediSearch index:
-+
-`FT.INFO products`
-. Run simple keyword search:
-+
-`FT.SEARCH products chambly`
+## Products
+
+Launch `redis-cli`
+
+### Show number of documents in RediSearch index:
+
+```
+FT.INFO products
+```
+
+### Run simple keyword search:
+
+```
+FT.SEARCH products chambly
 +
 TIP: `name`, `description`, `breweryName` are phonetic text fields so you will notice results containing words that sound similar. 
 . Run prefix search:
@@ -65,19 +68,22 @@ TIP: `name`, `description`, `breweryName` are phonetic text fields so you will n
 +
 `@abv:[7 9]`
 . Change the sort-by field to `ABV` and click `Submit`
+```
 
-=== Availability
-. Click `Availability` on one of the search results. This takes you to the availability map for that product. 
+### Availability
+
+Click `Availability` on one of the search results. This takes you to the availability map for that product. 
 . The map shows stores near you where the selected product is currently available.
 . Stores in `green` have more than 20 in stock, `amber`: 10 to 20, `red`: less than 10
 
-=== Inventory
-. Click on a store and then on the link that pops up 
-. This takes you to the real-time inventory for that store
-. The *Available to Promise* field is updated in real-time based on current difference between supply (*On Hand*) and demand (*Reserved + Allocated + Virtual Hold*).
+### Inventory
+
+- Click on a store and then on the link that pops up 
+- This takes you to the real-time inventory for that store
+- The *Available to Promise* field is updated in real-time based on current difference between supply (*On Hand*) and demand (*Reserved + Allocated + Virtual Hold*).
 
 
-== Configuration
+### Configuration
 
 The app server is built with Spring Boot which can be configured different ways: https://docs.spring.io/spring-boot/docs/2.2.x/reference/html/spring-boot-features.html#boot-features-external-config[Spring Boot Externalized Configuration].
 Depending on the way you're running the demo you can either:
@@ -85,17 +91,20 @@ Depending on the way you're running the demo you can either:
 - create a `application.properties` file based on the https://github.com/redis-developer/brewdis/blob/master/demo/brewdis-api/src/main/resources/application.properties[one that ships with Brewdis]
 - specify JVM arguments like this:
 [source,shell]
-----
+
+```
 java -jar brewdis.jar --spring.redis.host=localhost --spring.redis.port=6379 ...
-----
+```
+
 - use environment variables:
-[source,shell]
-----
+
+
+```
 export spring.redis.host=localhost
 export spring.redis.port=8080
 export ...
 java -jar brewdis.jar
-----
+```
 
 Here are the most common configuration options for this demo:
 
