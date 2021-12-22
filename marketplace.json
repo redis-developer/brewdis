@@ -4,7 +4,7 @@
   "type": "Building Block",
   "contributed_by": "Redis Labs",
   "repo_url": "https://github.com/redis-developer/brewdis",
-  "preview_image_url": "https://raw.githubusercontent.com/redis-developer/brewdis/master/images/app_preview_image.png",
+  "preview_image_url": "https://raw.githubusercontent.com/redis-developer/brewdis/master/app_preview_image.png",
   "download_url": "https://github.com/redis-developer/brewdis/archive/refs/heads/master.zip",
   "hosted_url": "",
   "quick_deploy": "false",
