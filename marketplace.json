@@ -4,8 +4,8 @@
   "type": "Building Block",
   "contributed_by": "Redis Labs",
   "repo_url": "https://github.com/redis-developer/brewdis",
-  "preview_image_url": "https://raw.githubusercontent.com/redis-developer/brewdis/main/images/app_preview_image.png",
-  "download_url": "https://github.com/redis-developer/brewdis/archive/refs/heads/main.zip",
+  "preview_image_url": "https://raw.githubusercontent.com/redis-developer/brewdis/master/images/app_preview_image.png",
+  "download_url": "https://github.com/redis-developer/brewdis/archive/refs/heads/master.zip",
   "hosted_url": "",
   "quick_deploy": "false",
   "deploy_buttons": [],
@@ -31,5 +31,5 @@
   "verticals": [
     "Retail"
   ],
-  "markdown": "https://raw.githubusercontent.com/redis-developer/brewdis/main/README.md"
+  "markdown": "https://raw.githubusercontent.com/redis-developer/brewdis/master/README.md"
 }
