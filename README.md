@@ -10,7 +10,7 @@ Real-time inventory demo based on data from [https://brewerydb.com](brewerydb.co
 - Gradle 6.8.3
 - Kordamp Gradle plugins 0.46.0.
 - Redis
-- RediSearch
+- Redis Search
 
 
 
@@ -40,7 +40,7 @@ Access the demo at http://localhost
 
 Launch `redis-cli`
 
-### Show number of documents in RediSearch index:
+### Show number of documents inRedis Searchindex:
 
 ```
 FT.INFO products
@@ -52,7 +52,7 @@ FT.INFO products
 FT.SEARCH products chambly
 ```
 
-TIP: `name`, `description`, `breweryName` are phonetic text fields so you will notice results containing words that sound similar. 
+TIP: `name`, `description`, `breweryName` are phonetic text fields so you will notice results containing words that sound similar.
 
 ### Run prefix search:
 
@@ -63,7 +63,7 @@ TIP: `name`, `description`, `breweryName` are phonetic text fields so you will n
 - Open http://localhost[]
 - Enter a simple keyword search, e.g. `chambly`. Note highlighted matches.
 - Expand the filter panel by clicking on the filter button (image:https://pic.onlinewebfonts.com/svg/img_3152.png[width=24])
-- Enter some characters in the Brewery field to retrieve suggestions from RediSearch (e.g. `Unib`)
+- Enter some characters in the Brewery field to retrieve suggestions fromRedis Search(e.g. `Unib`)
 - Click the `Submit` button
 - Refine the search by adding a constraint on the alcohol content (ABV field):
 
@@ -75,13 +75,13 @@ TIP: `name`, `description`, `breweryName` are phonetic text fields so you will n
 
 ### Availability
 
-Click `Availability` on one of the search results. This takes you to the availability map for that product. 
+Click `Availability` on one of the search results. This takes you to the availability map for that product.
 . The map shows stores near you where the selected product is currently available.
 . Stores in `green` have more than 20 in stock, `amber`: 10 to 20, `red`: less than 10
 
 ### Inventory
 
-- Click on a store and then on the link that pops up 
+- Click on a store and then on the link that pops up
 - This takes you to the real-time inventory for that store
 - The *Available to Promise* field is updated in real-time based on current difference between supply (*On Hand*) and demand (*Reserved + Allocated + Virtual Hold*).
 
@@ -118,6 +118,4 @@ Here are the most common configuration options for this demo:
 - `stomp.port`: Websocket server port (default: `8080`)
 - `stomp.protocol`: Websocket protocol (default: `ws`). Use `wss` for secure websockets
 - `inventory.generator.rate`: duration in millis the generator should sleep between inventory updates (default: `100`)
-- `availability-radius`: radius to find in-store availability (default: `25 mi`)   
-
-
+- `availability-radius`: radius to find in-store availability (default: `25 mi`)
